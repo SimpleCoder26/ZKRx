@@ -1,0 +1,49 @@
+pragma language_version >= 0.23;
+
+import CompactStandardLibrary;
+
+// The public ledger state for ZKRx
+// Maps a registered Batch Hash (Bytes<32>) to the number of times it has been verified/consumed.
+export ledger registered_batches: Map<Bytes<32>, Uint<32>>;
+
+// A set of used nullifiers to prevent double-scanning of the same drug item.
+export ledger consumed_nullifiers: Set<Bytes<32>>;
+
+// The private witness represents the drug item's secret seed embedded in the QR code.
+witness itemSecret(): Bytes<32>;
+
+// Struct to securely hash the Batch Hash and Item Secret together
+export struct NullifierInput {
+    batchHash: Bytes<32>,
+    secret: Bytes<32>
+}
+
+// Circuit for Manufacturers to register a batch
+export circuit registerBatch(batchHash: Bytes<32>): [] {
+    const revealedHash = disclose(batchHash);
+    assert(!registered_batches.member(revealedHash), "Batch already registered");
+    registered_batches.insert(revealedHash, 0 as Uint<32>);
+}
+
+// Circuit for Patients to verify a drug
+export circuit verifyDrug(batchHash: Bytes<32>): [] {
+    const secret = itemSecret();
+    
+    // 1. Verify the batch exists on the ledger
+    const revealedBatchHash = disclose(batchHash);
+    assert(registered_batches.member(revealedBatchHash), "Invalid or unregistered batch");
+    
+    // 2. Cryptographically derive the nullifier INSIDE the circuit
+    const input = NullifierInput { batchHash: batchHash, secret: secret };
+    const derivedNullifier = persistentHash<NullifierInput>(input);
+    const revealedNullifier = disclose(derivedNullifier);
+    
+    // 3. Prevent duplicate scanning for this specific drug
+    assert(!consumed_nullifiers.member(revealedNullifier), "This drug has already been scanned and verified. Potential Counterfeit Warning!");
+        
+    // 4. Update public state
+    consumed_nullifiers.insert(revealedNullifier);
+    
+    const currentCount = registered_batches.lookup(revealedBatchHash);
+    registered_batches.insert(revealedBatchHash, (currentCount + 1) as Uint<32>);
+}
