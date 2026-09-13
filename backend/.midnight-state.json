@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "activeNetwork": "preprod",
+  "wallets": {
+    "preprod": {
+      "seed": "b004a6dd8a882cd11c1bd9da4f7129d7a899a3dafe5c97b602f29fcc6b4fdbc4f62d1a775f625ee80b58b4d3116a7b976dd4bcc844c4e445f887c0f4b8d44967",
+      "mnemonic": "naive warfare lazy surround motor lemon exhaust figure robot chest key weekend noble sad year envelope grocery sustain divert truck eagle scene inside next",
+      "createdAt": "2026-09-12T22:14:47.294Z"
+    }
+  },
+  "deployments": {}
+}
