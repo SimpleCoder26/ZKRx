@@ -258,6 +258,17 @@ The CI badge at the top of this README shows the current pipeline status.
 
 ---
 
+## ✧ DEPLOYMENT (VERCEL)
+
+This project is configured as an npm workspace. To deploy the frontend to Vercel:
+
+1. Import this repository into Vercel.
+2. In the "Configure Project" step, open the **Build and Output Settings**.
+3. Set the **Root Directory** to `web-dapp`.
+4. Vercel will automatically detect the Next.js framework and npm workspaces. It will run the build correctly without any further configuration.
+
+---
+
 ## ✧ SETUP & RUN LOCALLY
 
 To clone and run the ZKRx platform locally on your machine, follow these steps:
