@@ -13,6 +13,10 @@ const nextConfig: NextConfig = {
     if (!config.resolve) {
       config.resolve = {};
     }
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      'isomorphic-ws$': require('path').resolve(__dirname, 'src/isomorphic-ws.js')
+    };
     config.resolve.fallback = {
       ...config.resolve.fallback,
       fs: false,

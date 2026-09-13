@@ -26,15 +26,22 @@ export default function VerifyDrugPage() {
     toast.info("Submitting ZK verification proof to Midnight...");
 
     try {
-      // Convert hex string to bytes
-      const hex = batchHashInput.trim().replace(/^0x/, '');
+      // The payload format from the QR code should be: <BatchHash>-<ItemSecret>
+      const parts = batchHashInput.trim().split('-');
+      if (parts.length !== 2 || parts[0].length !== 64 || parts[1].length !== 64) {
+        throw new Error("Invalid QR code format. Expected: 64-char BatchHash followed by '-' and 64-char ItemSecret");
+      }
+      
+      const batchHex = parts[0].replace(/^0x/, '');
+      const itemSecretHex = parts[1].replace(/^0x/, '');
+      
       const batchBytes = new Uint8Array(32);
-      for (let i = 0; i < Math.min(32, hex.length / 2); i++) {
-        batchBytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+      for (let i = 0; i < Math.min(32, batchHex.length / 2); i++) {
+        batchBytes[i] = parseInt(batchHex.slice(i * 2, i * 2 + 2), 16);
       }
 
       toast.info("Please approve the transaction in your wallet...");
-      const hash = await verifyDrug(batchBytes);
+      const hash = await verifyDrug(batchBytes, itemSecretHex);
       
       setTxHash(hash);
       setResult('authentic');
@@ -75,12 +82,12 @@ export default function VerifyDrugPage() {
         </div>
 
         <div className="glass-card rounded-2xl p-8 mb-8">
-          <label className="font-label-caps text-label-caps text-on-surface-variant block mb-2">Batch Hash (from QR Code)</label>
+          <label className="font-label-caps text-label-caps text-on-surface-variant block mb-2">QR Code Payload (BatchHash-ItemSecret)</label>
           <input
             type="text"
             value={batchHashInput}
             onChange={(e) => setBatchHashInput(e.target.value)}
-            placeholder="Enter or scan the batch hash (64 hex characters)"
+            placeholder="e.g. abc123def456...-789xyz..."
             className="w-full bg-surface-container border border-outline-variant/30 rounded-lg px-4 py-3 text-on-surface font-data-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all mb-6"
           />
 

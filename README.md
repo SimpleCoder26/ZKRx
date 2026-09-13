@@ -1,5 +1,4 @@
 <div align="center">
-  <img src="./frontend/public/shield-logo.png" alt="ZKRx Logo" width="120" style="border-radius: 12px; margin-bottom: 20px;" />
   <h1>✦ ZKRx Platform ✦</h1>
   
   <p align="center">
@@ -23,7 +22,7 @@
 *   **▤ GitHub Repository**: [https://github.com/SimpleCoder26/ZKRx](https://github.com/SimpleCoder26/ZKRx)
 *   **⌁ Live Demo**: [To be added by author]
 *   **▷ Demo Video**: [To be added by author]
-*   **☰ Product Proposal**: [To be added by author]
+*   **☰ Approved Category**: **Private Allowlist Access**
 *   **⚙ Smart Contract**: [`zkrx.compact`](./zk-circuit/contracts/zkrx.compact)
 *   **⌖ Contract Address**: [`0x0d2181f9545b4f21f142eb81970c50887363533bd55f51e5a4dade7e096f27f4`](https://preprod.midnightexplorer.com/contracts/0d2181f9545b4f21f142eb81970c50887363533bd55f51e5a4dade7e096f27f4) *(Note: Due to known faults on the Midnight Explorer's end, you may need to access this link via a private network/VPN or Cloudflare DNS).*
 
@@ -45,6 +44,9 @@ This local proof cryptographically guarantees to the `zkrx.compact` smart contra
 1. The drug belongs to a legitimately registered batch.
 2. The drug has the correct private item secret.
 3. The drug has not been scanned and consumed before (enforced via a mathematically unique **Nullifier**).
+
+**Hackathon Category Alignment: Private Allowlist Access**
+The ZKRx project solves the pharmaceutical tracking problem by mathematically proving that a specific item (the drug) belongs to an authorized manufacturer's allowlist (the registered batch), without ever revealing the underlying item secret to the network.
 
 The network verifies the proof and updates the public ledger, but remains completely blind to the actual secret item code. By utilizing Midnight's distinct separation of **Public State** and **Private Witness**, ZKRx allows manufacturers to prove authenticity without ever exposing their proprietary supply chain data.
 
@@ -82,7 +84,7 @@ The network verifies the proof and updates the public ledger, but remains comple
 | **Functional dApp Integration** | ✓ **Done.** Fully integrated the Midnight JS SDK, allowing manufacturers to autonomously deploy contracts and register batches natively on the Preprod network from their browser. |
 | **Minimum 3 Tests Passing** | ✓ **Done.** All invariants passing. |
 | **CI/CD Pipeline Running** | ✓ **Done.** Implemented via GitHub Actions. |
-| **Approved Idea Submitted** | ✓ **Done.** |
+| **Approved Idea Submitted** | ✓ **Done.** Category: Private Allowlist Access. |
 | **Test Output Screenshot** | ✓ **Done.** See deliverables section. |
 | **CI/CD Badge** | ✓ **Done.** Displayed at the top of this README. |
 | **Privacy Model "Observer"** | ✓ **Done.** Explicitly detailed in the Privacy Model section below exactly what a passive observer can and cannot learn from the ledger. |
@@ -224,13 +226,45 @@ zkrx/
 
 ---
 
+## ✧ PRODUCT PROPOSAL
+
+See [`PROPOSAL.md`](./PROPOSAL.md) for the full product proposal, including:
+- What the product does and who uses it
+- Why Midnight is specifically required
+- Data Model (public vs. private data points)
+- Mainnet feasibility analysis
+
+**Category**: Private Allowlist Access — proving that a pharmaceutical item belongs to a manufacturer's registered allowlist without revealing the item's private secret.
+
+---
+
+## ✧ RUN TESTS
+
+```bash
+npm run test --workspace=zk-circuit
+```
+
+Expected output: 4 passing tests covering structural verification, valid registration/verification, unregistered batch rejection, and double-scan prevention.
+
+---
+
+## ✧ CI/CD
+
+The project uses GitHub Actions for continuous integration. The pipeline runs on every push to `main` and on pull requests:
+
+1. **Checkout** → **Install Dependencies** → **Compile ZK Circuits** → **Run Tests** → **Build Frontend**
+
+The CI badge at the top of this README shows the current pipeline status.
+
+---
+
 ## ✧ SETUP & RUN LOCALLY
 
 To clone and run the ZKRx platform locally on your machine, follow these steps:
 
 ### Prerequisites
-1. **Node.js**: Ensure you have Node.js v20+ installed.
-2. **Midnight Toolchain**: Ensure you have the `compact-compiler` and Midnight local node tools installed.
+1. **Node.js**: Ensure you have Node.js v22 or higher installed.
+2. **Midnight Toolchain**: Ensure you have the `compact-compiler` installed locally.
 3. **Wallet**: Install the **1A.M. Wallet** (or Lace) browser extension and enable the DApp Connector. (We strongly recommend 1A.M. to avoid DUST balancing issues).
 
 ### Step-by-Step Guide

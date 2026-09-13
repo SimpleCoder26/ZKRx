@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { InitialAPI, ConnectedAPI } from '@midnight-ntwrk/dapp-connector-api';
 import { ContractState } from '@midnight-ntwrk/compact-runtime';
@@ -14,7 +14,7 @@ interface MidnightContextType {
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
   registerBatch: (batchHash: Uint8Array) => Promise<string>;
-  verifyDrug: (batchHash: Uint8Array) => Promise<string>;
+  verifyDrug: (batchHash: Uint8Array, itemSecretHex: string) => Promise<string>;
   deploySmartContract: () => Promise<string>;
 }
 
@@ -113,6 +113,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
   const [midnightProviders, setMidnightProviders] = useState<any>(null);
   const [compiledContract, setCompiledContract] = useState<any>(null);
   const [contractAddress, setContractAddress] = useState<string>('');
+  const currentWitnessState = useRef({ secretBytes: new Uint8Array(32) });
 
   const [showModal, setShowModal] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'connecting' | 'success'>('idle');
@@ -234,19 +235,8 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        // Generate persistent user secret for the itemSecret witness
-        let userSecretHex = localStorage.getItem('zkrx_user_secret');
-        if (!userSecretHex) {
-          const arr = new Uint8Array(32);
-          crypto.getRandomValues(arr);
-          userSecretHex = Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
-          localStorage.setItem('zkrx_user_secret', userSecretHex);
-        }
-        
-        const secretBytes = new Uint8Array(32);
-        for (let i = 0; i < 32; i++) {
-          secretBytes[i] = parseInt(userSecretHex.slice(i * 2, i * 2 + 2), 16);
-        }
+        // The itemSecret is dynamically updated before each verifyDrug call via currentWitnessState
+        // We no longer use a random browser secret, ensuring authentic double-scanning prevention.
 
         const basePublicDataProvider = indexerPublicDataProvider(config.indexerUri, config.indexerWsUri);
         const providers: any = {
@@ -277,7 +267,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
 
         const compiled = CompiledContract.make('Contract', Contract).pipe(
           CompiledContract.withWitnesses({ 
-            itemSecret: () => [undefined, secretBytes]
+            itemSecret: () => [undefined, currentWitnessState.current.secretBytes]
           }),
           CompiledContract.withCompiledFileAssets('/managed/zkrx/')
         );
@@ -387,7 +377,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
     return txHash;
   };
 
-  const verifyDrug = async (batchHash: Uint8Array): Promise<string> => {
+  const verifyDrug = async (batchHash: Uint8Array, itemSecretHex: string): Promise<string> => {
     if (!walletConnected || !connectedApi || !walletAddress) {
       throw new Error('Please connect your wallet first');
     }
@@ -397,6 +387,17 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
     if (!midnightProviders || !compiledContract || !latestAddress) {
       throw new Error('Midnight providers or contract address not initialized');
     }
+
+    // Update the dynamic witness state with the provided secret from the QR code
+    const normalizedSecret = itemSecretHex.replace(/^0x/, '');
+    if (normalizedSecret.length !== 64) {
+      throw new Error('Invalid Item Secret format. Must be 32 bytes (64 hex characters).');
+    }
+    const secretBytes = new Uint8Array(32);
+    for (let i = 0; i < 32; i++) {
+      secretBytes[i] = parseInt(normalizedSecret.slice(i * 2, i * 2 + 2), 16);
+    }
+    currentWitnessState.current.secretBytes = secretBytes;
 
     const { findDeployedContract } = await import('@midnight-ntwrk/midnight-js-contracts');
     const contract = await findDeployedContract(midnightProviders, {

@@ -5,7 +5,7 @@ import { useMidnight } from "@/providers/MidnightProvider";
 import { AppShell } from "@/components/layout/AppShell";
 import { toast } from "sonner";
 import QRCode from "react-qr-code";
-import { Factory, CheckCircle, Loader2, ExternalLink, Copy } from "lucide-react";
+import { Factory, CheckCircle, Loader2, ExternalLink, Copy, Lock } from "lucide-react";
 
 export default function ManufacturerDashboard() {
   const { walletConnected, registerBatch } = useMidnight();
@@ -16,6 +16,7 @@ export default function ManufacturerDashboard() {
   const [loading, setLoading] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [generatedHash, setGeneratedHash] = useState<string | null>(null);
+  const [generatedSecret, setGeneratedSecret] = useState<string | null>(null);
 
   const handleRegister = async () => {
     if (!drugName || !manufacturer || !batchNumber) {
@@ -35,7 +36,13 @@ export default function ManufacturerDashboard() {
       const hashArray = new Uint8Array(hashBuffer);
       const hashHex = Array.from(hashArray).map(b => b.toString(16).padStart(2, '0')).join('');
       
+      // Generate a unique per-item secret for this drug unit
+      const itemSecretBytes = new Uint8Array(32);
+      crypto.getRandomValues(itemSecretBytes);
+      const itemSecretHex = Array.from(itemSecretBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+      
       setGeneratedHash(hashHex);
+      setGeneratedSecret(itemSecretHex);
       
       // Call the registerBatch circuit on Midnight
       toast.info("Please approve the transaction in your wallet...");
@@ -101,17 +108,23 @@ export default function ManufacturerDashboard() {
               </a>
             </div>
 
-            {/* QR Code for this batch */}
+            {/* QR Code for this batch — encodes BatchHash-ItemSecret */}
             <div className="border-t border-outline-variant/20 pt-6">
               <h3 className="font-headline-md text-lg font-bold text-on-surface mb-4">Generated QR Code</h3>
-              <p className="font-body-sm text-body-sm text-on-surface-variant mb-4">This QR code contains the batch hash. Print it on drug packaging for patient verification.</p>
+              <p className="font-body-sm text-body-sm text-on-surface-variant mb-4">This QR code contains the batch hash and a unique per-item secret. Print it on drug packaging for patient verification. Each physical drug unit should receive a unique QR code.</p>
               <div className="bg-white p-6 rounded-xl inline-block shadow-sm border border-outline-variant/10">
-                <QRCode value={generatedHash || ""} size={180} />
+                <QRCode value={`${generatedHash}-${generatedSecret}`} size={180} />
+              </div>
+              <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                <p className="text-amber-800 text-xs font-semibold flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5" />
+                  The Item Secret embedded in this QR is never stored on-chain. It is used only as a private ZK witness.
+                </p>
               </div>
             </div>
 
             <button
-              onClick={() => { setTxHash(null); setGeneratedHash(null); setDrugName(""); setManufacturer(""); setBatchNumber(""); setExpiryDate(""); }}
+              onClick={() => { setTxHash(null); setGeneratedHash(null); setGeneratedSecret(null); setDrugName(""); setManufacturer(""); setBatchNumber(""); setExpiryDate(""); }}
               className="mt-8 bg-primary text-on-primary px-6 py-3 rounded-full font-label-caps font-semibold transition-all hover:shadow-md"
             >
               Register Another Batch
