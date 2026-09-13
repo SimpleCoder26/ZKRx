@@ -1,14 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMidnight } from "@/providers/MidnightProvider";
 import { AppShell } from "@/components/layout/AppShell";
 import { toast } from "sonner";
 import QRCode from "react-qr-code";
-import { Factory, CheckCircle, Loader2, ExternalLink, Copy, Lock } from "lucide-react";
+import { Factory, CheckCircle, Loader2, ExternalLink, Copy, Lock, Database } from "lucide-react";
 
 export default function ManufacturerDashboard() {
-  const { walletConnected, registerBatch } = useMidnight();
+  const { walletConnected, walletAddress, registerBatch } = useMidnight();
   const [drugName, setDrugName] = useState("");
   const [manufacturer, setManufacturer] = useState("");
   const [batchNumber, setBatchNumber] = useState("");
@@ -17,6 +17,21 @@ export default function ManufacturerDashboard() {
   const [txHash, setTxHash] = useState<string | null>(null);
   const [generatedHash, setGeneratedHash] = useState<string | null>(null);
   const [generatedSecret, setGeneratedSecret] = useState<string | null>(null);
+  const [issuedBatches, setIssuedBatches] = useState<{name: string, batch: string, date: string, hash: string}[]>([]);
+
+  useEffect(() => {
+    if (walletAddress) {
+      try {
+        const stored = localStorage.getItem(`zkrx_issued_${walletAddress}`);
+        if (stored) setIssuedBatches(JSON.parse(stored));
+        else setIssuedBatches([]);
+      } catch (e) {
+        console.error("Failed to load issued batches", e);
+      }
+    } else {
+      setIssuedBatches([]);
+    }
+  }, [walletAddress]);
 
   const handleRegister = async () => {
     if (!drugName || !manufacturer || !batchNumber) {
@@ -50,6 +65,20 @@ export default function ManufacturerDashboard() {
       
       setTxHash(result);
       toast.success("Batch registered on Midnight Network!");
+
+      const newBatch = {
+        name: drugName,
+        batch: batchNumber,
+        date: new Date().toISOString().split('T')[0],
+        hash: hashHex,
+      };
+      setIssuedBatches(prev => {
+        const updated = [newBatch, ...prev];
+        if (walletAddress) {
+          localStorage.setItem(`zkrx_issued_${walletAddress}`, JSON.stringify(updated));
+        }
+        return updated;
+      });
     } catch (err: any) {
       console.error("Registration failed:", err);
       if (err?.message?.includes("already registered")) {
@@ -185,6 +214,49 @@ export default function ManufacturerDashboard() {
                 <><Factory className="w-5 h-5" /> Register Batch on Midnight</>
               )}
             </button>
+          </div>
+        )}
+
+        {/* Issued Medicines List */}
+        {walletConnected && walletAddress && (
+          <div className="mt-8 glass-card rounded-2xl p-8">
+            <h2 className="font-headline-md text-xl font-bold text-on-surface mb-6 flex items-center gap-2">
+              <Database className="w-5 h-5 text-primary" />
+              Your Issued Medicines (Local History)
+            </h2>
+            
+            {issuedBatches.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-outline-variant/30 text-on-surface-variant font-label-caps text-xs">
+                      <th className="py-3 px-4">Date</th>
+                      <th className="py-3 px-4">Drug Name</th>
+                      <th className="py-3 px-4">Batch Number</th>
+                      <th className="py-3 px-4">Batch Hash</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {issuedBatches.map((batch, idx) => (
+                      <tr key={idx} className="border-b border-outline-variant/10 hover:bg-surface-variant/30 transition-colors">
+                        <td className="py-3 px-4 text-body-sm text-on-surface">{batch.date}</td>
+                        <td className="py-3 px-4 text-body-md font-medium text-on-surface">{batch.name}</td>
+                        <td className="py-3 px-4 text-body-sm font-data-mono text-on-surface-variant">{batch.batch}</td>
+                        <td className="py-3 px-4">
+                          <div className="text-xs font-data-mono text-on-surface-variant max-w-[150px] md:max-w-[300px] truncate" title={batch.hash}>
+                            {batch.hash}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-on-surface-variant font-body-sm">
+                You haven't issued any medicines yet from this wallet.
+              </div>
+            )}
           </div>
         )}
       </div>
