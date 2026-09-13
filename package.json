@@ -1,0 +1,16 @@
+{
+  "name": "zkrx",
+  "version": "1.0.0",
+  "description": "Zero-Knowledge Pharmaceutical Verification Platform",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --workspace=web-dapp",
+    "build": "npm run compile --workspace=zk-circuit && npm run build --workspace=web-dapp",
+    "test": "npm run test --workspace=zk-circuit",
+    "compile": "npm run compile --workspace=zk-circuit"
+  },
+  "workspaces": [
+    "zk-circuit",
+    "web-dapp"
+  ]
+}

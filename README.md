@@ -24,7 +24,7 @@
 *   **⌁ Live Demo**: [To be added by author]
 *   **▷ Demo Video**: [To be added by author]
 *   **☰ Product Proposal**: [To be added by author]
-*   **⚙ Smart Contract**: [`zkrx.compact`](./backend/contracts/zkrx.compact)
+*   **⚙ Smart Contract**: [`zkrx.compact`](./zk-circuit/contracts/zkrx.compact)
 *   **⌖ Contract Address**: [`0x0d2181f9545b4f21f142eb81970c50887363533bd55f51e5a4dade7e096f27f4`](https://preprod.midnightexplorer.com/contracts/0d2181f9545b4f21f142eb81970c50887363533bd55f51e5a4dade7e096f27f4) *(Note: Due to known faults on the Midnight Explorer's end, you may need to access this link via a private network/VPN or Cloudflare DNS).*
 
 ---
@@ -209,16 +209,17 @@ sequenceDiagram
 
 ```text
 zkrx/
-├── backend/
+├── package.json           # Root workspace configuration
+├── .github/workflows/     # GitHub Actions CI/CD pipelines
+├── zk-circuit/
 │   ├── contracts/         # Midnight Compact smart contract source code
 │   │   ├── managed/       # Generated ZK circuits, proving keys, and verification keys
 │   │   └── zkrx.compact   # Core selective disclosure logic
 │   └── tests/             # Automated test suite validating ZK constraints
-├── frontend/
-│   ├── src/app/           # Next.js App Router (Landing, Manufacturer, Verify, Explorer, Admin)
-│   ├── src/providers/     # Midnight Wallet SDK integration context
-│   └── package.json       # Frontend dependencies and Next.js config
-└── .github/workflows/     # GitHub Actions CI/CD pipelines
+└── web-dapp/
+    ├── src/app/           # Next.js App Router (Landing, Manufacturer, Verify, Explorer, Admin)
+    ├── src/providers/     # Midnight Wallet SDK integration context
+    └── package.json       # Frontend dependencies and Next.js config
 ```
 
 ---
@@ -238,23 +239,22 @@ To clone and run the ZKRx platform locally on your machine, follow these steps:
    git clone https://github.com/SimpleCoder26/ZKRx.git
    cd ZKRx
    ```
-2. **Compile the Smart Contract:**
-   Navigate to the backend and build the ZK circuits.
+2. **Install Dependencies (Monorepo):**
+   This single command installs everything for both the circuit and the dapp.
    ```bash
-   cd backend
    npm install
+   ```
+3. **Compile the Smart Contract:**
+   ```bash
    npm run compile
    ```
-3. **Run the Test Suite:**
+4. **Run the Test Suite:**
    Verify the contract invariants by running the tests.
    ```bash
-   npm test
+   npm run test
    ```
-4. **Launch the Frontend:**
-   Navigate to the frontend directory to start the Next.js server.
+5. **Launch the Frontend:**
    ```bash
-   cd ../frontend
-   npm install
    npm run dev
    ```
 5. **Open the dApp:**

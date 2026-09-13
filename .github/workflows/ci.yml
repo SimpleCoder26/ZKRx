@@ -1,0 +1,31 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Monorepo Dependencies
+        run: npm ci
+
+      - name: Compile ZK Circuits (Midnight)
+        run: npm run compile --workspace=zk-circuit
+
+      - name: Run ZK Circuit Tests
+        run: npm run test --workspace=zk-circuit
+
+      - name: Build Next.js UI (Web Dapp)
+        run: npm run build --workspace=web-dapp
