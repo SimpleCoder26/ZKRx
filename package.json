@@ -12,9 +12,5 @@
   "workspaces": [
     "zk-circuit",
     "web-dapp"
-  ],
-  "overrides": {
-    "@midnight-ntwrk/ledger-v8": "$@midnight-ntwrk/ledger-v8",
-    "@midnight-ntwrk/onchain-runtime-v3": "^3.1.0"
-  }
+  ]
 }

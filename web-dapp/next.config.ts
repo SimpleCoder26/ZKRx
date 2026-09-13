@@ -15,7 +15,9 @@ const nextConfig: NextConfig = {
     }
     config.resolve.alias = {
       ...config.resolve.alias,
-      'isomorphic-ws$': require('path').resolve(__dirname, 'src/isomorphic-ws.js')
+      'isomorphic-ws$': require('path').resolve(__dirname, 'src/isomorphic-ws.js'),
+      '@midnight-ntwrk/onchain-runtime-v3': require('path').resolve(__dirname, '../node_modules/@midnight-ntwrk/onchain-runtime-v3'),
+      '@midnight-ntwrk/ledger-v8': require('path').resolve(__dirname, '../node_modules/@midnight-ntwrk/ledger-v8')
     };
     config.resolve.fallback = {
       ...config.resolve.fallback,
