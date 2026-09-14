@@ -53,20 +53,7 @@ The network verifies the proof and updates the public ledger, but remains comple
 
 ---
 
-## 🏗️ INFRASTRUCTURE & RECENT UPGRADES
 
-We have significantly upgraded the infrastructure for maximum resilience, performance, and developer experience:
-
-### 🐋 Hosted Midnight Proof Server Backend
-To eliminate local resource constraints and cross-origin bottlenecks, ZKRx utilizes a fully containerized **Remote Proof Server Backend**.
-*   **Container**: `midnightntwrk/proof-server:8.1.0`
-*   **Architecture**: Plugs directly into the Midnight JS SDK to provide blazing-fast, secure Zero-Knowledge Proof generation natively for users without requiring them to run heavy local nodes.
-*   **Deployment**: Fully deployed and active; no local setup required for the end-user.
-
-### 🎨 Next.js Frontend & UI Overhaul
-*   **Aesthetic Integration**: Completely refactored the UI to a modern, minimalist pure-black & white aesthetic matching the sleekest Web3 startup standards.
-*   **Dynamic Explorer Routing**: Integrated seamless verification links redirecting straight to `preprod.midnightexplorer.com` with real-time hash tracking.
-*   **Robust Wallet Hydration**: Implemented strict local storage caching to maintain wallet state and fix network desync glitches in the Lace/1AM connector.
 
 ---
 
