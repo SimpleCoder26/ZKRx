@@ -8,31 +8,38 @@ export function WalletConnect() {
 
   if (walletConnected && walletAddress) {
     return (
-      <div className="flex items-center gap-2 sm:gap-4">
-        <div className="hidden md:block bg-surface-container border border-outline-variant/50 text-on-surface rounded px-2 py-1 font-data-mono text-[10px] uppercase">
-          Preprod
-        </div>
-        
-        <div className="flex items-center gap-1.5 sm:gap-2 bg-surface-container-lowest border border-outline-variant/30 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-sm hover:bg-surface-container-low transition-colors min-w-0 shrink">
-          <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-600 shrink-0"></div>
+      <div className="flex items-center gap-3">
+        {/* Account Button */}
+        <div className="flex items-center p-1 bg-white border border-black/10 rounded-full shadow-sm hover:shadow-md hover:border-black/20 transition-all group cursor-default">
           
-          <div className="flex flex-col leading-tight mr-1 sm:mr-2 min-w-0">
-            <span className="font-data-mono text-data-mono font-medium text-[10px] sm:text-sm text-on-surface truncate">
-              {walletAddress.substring(0, 6)}...{walletAddress.substring(walletAddress.length - 4)}
-            </span>
-            <span className="text-[9px] font-semibold text-secondary hidden sm:block truncate">
-              {walletBalance ? `${walletBalance} tDUST` : "Midnight Network"}
-            </span>
+          {/* Avatar / Balance Section */}
+          <div className="flex items-center gap-3 pl-2.5 pr-4 py-1">
+            <div className="relative">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-violet-500 to-emerald-400 shadow-inner" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-white rounded-full flex items-center justify-center">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+              </div>
+            </div>
+            
+            <div className="flex flex-col leading-none">
+              <span className="text-black font-semibold text-[15px] tracking-tight">
+                {walletBalance ? `${walletBalance} tDUST` : "0.00 tDUST"}
+              </span>
+              <span className="text-black/50 text-[11px] font-medium tracking-wide mt-1">
+                {walletAddress.substring(0, 6)}...{walletAddress.substring(walletAddress.length - 4)}
+              </span>
+            </div>
           </div>
 
-          <div className="h-6 w-px bg-outline-variant/30 mx-1 shrink-0"></div>
+          <div className="w-px h-8 bg-black/10 mx-1" />
 
+          {/* Disconnect Button */}
           <button 
             onClick={disconnectWallet}
-            className="p-1 sm:p-1.5 hover:bg-error/10 rounded-full transition-colors group"
+            className="p-2.5 rounded-full hover:bg-red-50 text-black/40 hover:text-red-500 transition-colors"
             title="Disconnect Wallet"
           >
-            <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-on-surface-variant group-hover:text-error" />
+            <LogOut className="w-4 h-4 stroke-[2.5px]" />
           </button>
         </div>
       </div>
@@ -42,9 +49,8 @@ export function WalletConnect() {
   return (
     <button 
       onClick={() => connectWallet()}
-      className="bg-primary text-on-primary hover:bg-primary-container hover:text-on-primary-container flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-sm cursor-pointer transition-all hover:shadow-md border border-transparent font-data-mono font-medium text-xs sm:text-sm"
+      className="bg-black text-white text-base font-medium px-7 py-2.5 rounded-full hover:bg-gray-800 transition-colors duration-200"
     >
-      <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
       Connect Wallet
     </button>
   );
