@@ -103,16 +103,14 @@ function VerifyDrugContent() {
   };
 
   const simulateCameraScan = () => {
-    toast.success("Camera accessed successfully (Simulation).");
-    setBatchHashInput("https://preprod.midnightexplorer.com/transactions/0x1a1177c627edd7fd53bd9d1e3904cdb548bf84728f20b8f44d8c6b907c1bcbd4");
-    toast.info("QR Code Scanned!");
+    toast.success("Camera simulated.");
+    toast.info("Please use the input field to paste a hash for this demo.");
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       toast.success("QR Code uploaded successfully.");
-      setBatchHashInput("https://preprod.midnightexplorer.com/transactions/0x1a1177c627edd7fd53bd9d1e3904cdb548bf84728f20b8f44d8c6b907c1bcbd4");
-      toast.info("QR Code parsed from image!");
+      toast.info("Image parsed: Please use the input field for the demo.");
     }
   };
 
@@ -187,12 +185,12 @@ function VerifyDrugContent() {
           <button
             onClick={handleVerify}
             disabled={loading || !walletConnected || !batchHashInput.trim()}
-            className="w-full bg-emerald-600 text-white hover:bg-emerald-700 px-6 py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-black text-white hover:bg-black/90 px-6 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed border border-black/10"
           >
             {loading ? (
               <><Loader2 className="w-5 h-5 animate-spin" /> Verifying on Midnight...</>
             ) : (
-              <><ScanLine className="w-5 h-5" /> Verify Drug</>
+              <><ScanLine className="w-5 h-5" /> Verify Authenticity</>
             )}
           </button>
         </motion.div>
@@ -213,23 +211,6 @@ function VerifyDrugContent() {
                 <p className="text-emerald-700/80 text-base leading-relaxed font-medium">This drug has been verified as genuine on the Midnight Network. The zero-knowledge proof confirms the manufacturer's cryptographic signature without revealing their private keys.</p>
               </div>
             </div>
-            
-            {txHash && (
-              <div className="bg-white/60 p-5 rounded-2xl border border-emerald-100/50 mt-6">
-                <label className="text-xs font-bold text-emerald-800/60 uppercase tracking-wider mb-2 block">Proof Transaction Hash</label>
-                <div className="font-mono text-sm text-emerald-900 break-all mb-4">
-                  0x{txHash.replace(/^0x/, '')}
-                </div>
-                <a
-                  href={`https://preprod.midnightexplorer.com/transactions/0x${txHash.replace(/^0x/, '')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 font-bold text-sm transition-colors"
-                >
-                  View on Midnight Explorer <ExternalLink className="w-4 h-4" />
-                </a>
-              </div>
-            )}
           </motion.div>
         )}
 

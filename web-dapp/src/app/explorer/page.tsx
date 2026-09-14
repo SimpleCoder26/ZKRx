@@ -120,28 +120,13 @@ export default function ExplorerPage() {
             transition={{ delay: 0.2 }}
             className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-black/5 flex flex-col"
           >
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-slate-50 text-slate-600 rounded-xl flex items-center justify-center border border-slate-200">
                 <FileText className="w-5 h-5" />
               </div>
               <div>
                 <h2 className="text-lg font-bold text-black tracking-tight">Midnight Network</h2>
                 <div className="inline-flex px-2 py-0.5 bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-bold rounded uppercase tracking-wider mt-1">Connected</div>
-              </div>
-            </div>
-
-            <div className="space-y-5 flex-grow">
-              <div>
-                <p className="text-xs font-semibold text-black/60 mb-2">Manufacturer Registry (Contract)</p>
-                <div className="flex items-center justify-between gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl group hover:border-slate-300 transition-colors cursor-pointer" onClick={() => window.open(`https://preprod.midnightexplorer.com/contracts/${contractAddress}`, '_blank')}>
-                  <span className="font-mono text-xs text-slate-700 truncate">{contractAddress || "Not deployed yet"}</span>
-                  <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-black transition-colors shrink-0" />
-                </div>
-              </div>
-              
-              <div>
-                <p className="text-xs font-semibold text-black/60 mb-2">Ledger Status</p>
-                <p className="text-sm font-bold text-emerald-600">Synced & Healthy</p>
               </div>
             </div>
 
@@ -190,7 +175,7 @@ export default function ExplorerPage() {
                       <td className="py-5 px-6">
                         <div className="flex items-center gap-2 group">
                           <a 
-                            href={`https://preprod.midnightexplorer.com/transactions/0x${batch.txnHash}`} 
+                            href={`https://preprod.midnightexplorer.com/transaction/${(batch.txnHash || batch.hash)?.startsWith('0x') ? (batch.txnHash || batch.hash) : '0x' + (batch.txnHash || batch.hash)}`} 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="font-mono text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:underline max-w-[120px] truncate block"
@@ -210,8 +195,9 @@ export default function ExplorerPage() {
                         {batch.timestamp ? new Date(batch.timestamp).toLocaleDateString('en-GB') : batch.date}
                       </td>
                       <td className="py-5 px-6">
-                        <Link href={`/batch/${batch.batch}`} className="font-mono text-sm text-black hover:text-emerald-600 font-bold transition-colors">
+                        <Link href={`/batch/${batch.batch}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-lg font-mono text-sm font-bold transition-colors group">
                           {batch.batch}
+                          <ExternalLink className="w-3.5 h-3.5 text-blue-400 group-hover:text-blue-600" />
                         </Link>
                       </td>
                       <td className="py-4 px-6 text-sm text-black/60 font-mono truncate max-w-[120px]" title={batch.minter}>
