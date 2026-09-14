@@ -119,7 +119,7 @@ export default function VerifyDrugPage() {
                 <label className="font-label-caps text-label-caps text-emerald-700 block mb-1">Proof Transaction</label>
                 <div className="font-data-mono text-xs bg-white/70 p-3 rounded-lg break-all border border-emerald-200">{txHash}</div>
                 <a
-                  href={`https://preprod.midnightexplorer.com/transaction/${txHash}`}
+                  href={`https://preprod.midnightexplorer.com/transactions/0x${txHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 text-emerald-700 hover:underline text-sm mt-2 font-semibold"

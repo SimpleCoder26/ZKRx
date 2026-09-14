@@ -128,7 +128,7 @@ export default function ManufacturerDashboard() {
                 </div>
               </div>
               <a
-                href={`https://preprod.midnightexplorer.com/transaction/${txHash}`}
+                href={`https://preprod.midnightexplorer.com/transactions/0x${txHash}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-primary hover:underline font-label-caps text-sm"
