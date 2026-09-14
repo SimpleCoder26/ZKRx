@@ -16,10 +16,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
 
       - name: Install Monorepo Dependencies
-        run: npm ci
+        run: npm install
 
       - name: Install Compact Compiler
         run: npm install -g @midnight-ntwrk/compact-compiler || echo "Compact compiler install failed — using pre-compiled artifacts"
