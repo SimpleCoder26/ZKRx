@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test:
+  test-zk-circuit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,13 +21,26 @@ jobs:
         run: npm install
 
       - name: Install Compact Compiler
-        run: npm install -g @midnight-ntwrk/compact-compiler || echo "Compact compiler install failed — using pre-compiled artifacts"
+        run: npm install -g @midnight-ntwrk/compact-compiler
 
       - name: Compile ZK Circuits (Midnight)
-        run: npm run compile --workspace=zk-circuit || echo "Compact compilation skipped — using pre-compiled managed/ artifacts"
+        run: npm run compile --workspace=zk-circuit
 
       - name: Run ZK Circuit Tests
         run: npm run test --workspace=zk-circuit
+
+  build-web-dapp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Monorepo Dependencies
+        run: npm install
 
       - name: Build Next.js UI (Web Dapp)
         run: npm run build --workspace=web-dapp

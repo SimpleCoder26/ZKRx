@@ -337,7 +337,8 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
             }
           };
         } else {
-          console.log(`[ZKRx] Using httpClientProofProvider (wallet: ${walletId})`);
+          console.warn(`[ZKRx] ⚠️ PRIVACY WARNING: Using httpClientProofProvider (wallet: ${walletId}).`);
+          console.warn(`[ZKRx] ⚠️ Lace Wallet does not support local proving. The private item secret WILL be sent over the network to the Proof Server.`);
           providers.proofProvider = httpClientProofProvider(process.env.NEXT_PUBLIC_PROOF_SERVER_URL || 'http://localhost:6300', zkConfig);
         }
 
@@ -512,13 +513,18 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Update the dynamic witness state with the provided secret from the QR code
-    const normalizedSecret = itemSecretHex.replace(/^0x/, '');
-    if (normalizedSecret.length !== 64) {
-      throw new Error('Invalid Item Secret format. Must be 32 bytes (64 hex characters).');
+    const normalizedSecret = itemSecretHex.replace(/^0x/, '').trim();
+    if (normalizedSecret.length !== 64 || !/^[0-9a-fA-F]+$/.test(normalizedSecret)) {
+      throw new Error('Invalid Item Secret format. Must be a valid 32-byte (64-character) hex string.');
     }
+    
     const secretBytes = new Uint8Array(32);
-    for (let i = 0; i < 32; i++) {
-      secretBytes[i] = parseInt(normalizedSecret.slice(i * 2, i * 2 + 2), 16);
+    try {
+      for (let i = 0; i < 32; i++) {
+        secretBytes[i] = parseInt(normalizedSecret.slice(i * 2, i * 2 + 2), 16);
+      }
+    } catch (e) {
+      throw new Error('Failed to parse QR code item secret.');
     }
     currentWitnessState.current.secretBytes = secretBytes;
 
