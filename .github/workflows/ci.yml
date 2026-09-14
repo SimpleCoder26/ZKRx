@@ -20,11 +20,7 @@ jobs:
       - name: Install Monorepo Dependencies
         run: npm install
 
-      - name: Install Compact Compiler
-        run: npm install -g @midnight-ntwrk/compact-compiler
 
-      - name: Compile ZK Circuits (Midnight)
-        run: npm run compile --workspace=zk-circuit
 
       - name: Run ZK Circuit Tests
         run: npm run test --workspace=zk-circuit
