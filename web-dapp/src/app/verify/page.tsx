@@ -1,19 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { useMidnight } from "@/providers/MidnightProvider";
 import { AppShell } from "@/components/layout/AppShell";
 import { toast } from "sonner";
 import { ScanLine, CheckCircle, XCircle, Loader2, ExternalLink, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 
-export default function VerifyDrugPage() {
+function VerifyDrugContent() {
   const { walletConnected, verifyDrug } = useMidnight();
+  const searchParams = useSearchParams();
   const [batchHashInput, setBatchHashInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<'idle' | 'authentic' | 'counterfeit' | 'error'>('idle');
   const [txHash, setTxHash] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    const payloadParam = searchParams.get("payload");
+    if (payloadParam) {
+      setBatchHashInput(payloadParam);
+    }
+  }, [searchParams]);
 
   const handleVerify = async () => {
     if (!batchHashInput.trim()) {
@@ -194,5 +203,17 @@ export default function VerifyDrugPage() {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+export default function VerifyDrugPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex-grow flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+      </div>
+    }>
+      <VerifyDrugContent />
+    </Suspense>
   );
 }

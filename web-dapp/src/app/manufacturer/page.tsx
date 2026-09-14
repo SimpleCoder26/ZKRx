@@ -4,21 +4,23 @@ import { useState, useEffect } from "react";
 import { useMidnight } from "@/providers/MidnightProvider";
 import { AppShell } from "@/components/layout/AppShell";
 import { toast } from "sonner";
-import QRCode from "react-qr-code";
-import { Factory, CheckCircle, Loader2, ExternalLink, Copy, Lock, Database } from "lucide-react";
+import { Factory, CheckCircle, Loader2, ExternalLink, Copy, Lock, Database, QrCode } from "lucide-react";
 import { motion } from "framer-motion";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function ManufacturerDashboard() {
+  const router = useRouter();
   const { walletConnected, walletAddress, registerBatch } = useMidnight();
   const [drugName, setDrugName] = useState("");
   const [manufacturer, setManufacturer] = useState("");
   const [batchNumber, setBatchNumber] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
+  const [quantity, setQuantity] = useState("1");
   const [loading, setLoading] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [generatedHash, setGeneratedHash] = useState<string | null>(null);
-  const [generatedSecret, setGeneratedSecret] = useState<string | null>(null);
-  const [issuedBatches, setIssuedBatches] = useState<{name: string, batch: string, date: string, hash: string}[]>([]);
+  const [issuedBatches, setIssuedBatches] = useState<any[]>([]);
 
   useEffect(() => {
     if (walletAddress) {
@@ -35,8 +37,14 @@ export default function ManufacturerDashboard() {
   }, [walletAddress]);
 
   const handleRegister = async () => {
-    if (!drugName || !manufacturer || !batchNumber) {
+    if (!drugName || !manufacturer || !batchNumber || !quantity) {
       toast.error("Please fill all required fields");
+      return;
+    }
+
+    const qty = parseInt(quantity);
+    if (isNaN(qty) || qty < 1) {
+      toast.error("Quantity must be at least 1");
       return;
     }
 
@@ -52,13 +60,16 @@ export default function ManufacturerDashboard() {
       const hashArray = new Uint8Array(hashBuffer);
       const hashHex = Array.from(hashArray).map(b => b.toString(16).padStart(2, '0')).join('');
       
-      // Generate a unique per-item secret for this drug unit
-      const itemSecretBytes = new Uint8Array(32);
-      crypto.getRandomValues(itemSecretBytes);
-      const itemSecretHex = Array.from(itemSecretBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+      // Generate unique per-item secrets based on quantity
+      const itemSecrets: string[] = [];
+      for (let i = 0; i < qty; i++) {
+        const itemSecretBytes = new Uint8Array(32);
+        crypto.getRandomValues(itemSecretBytes);
+        const itemSecretHex = Array.from(itemSecretBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+        itemSecrets.push(itemSecretHex);
+      }
       
       setGeneratedHash(hashHex);
-      setGeneratedSecret(itemSecretHex);
       
       // Call the registerBatch circuit on Midnight
       toast.info("Please approve the transaction in your wallet...");
@@ -71,8 +82,14 @@ export default function ManufacturerDashboard() {
         name: drugName,
         batch: batchNumber,
         date: new Date().toISOString().split('T')[0],
+        timestamp: new Date().toISOString(),
         hash: hashHex,
+        txnHash: result,
+        minter: walletAddress,
+        quantity: qty,
+        itemSecrets: itemSecrets
       };
+
       setIssuedBatches(prev => {
         const updated = [newBatch, ...prev];
         if (walletAddress) {
@@ -140,38 +157,25 @@ export default function ManufacturerDashboard() {
                     </button>
                   </div>
                 </div>
-                <div className="text-center">
-                  <a
-                    href={`https://preprod.midnightexplorer.com/transactions/0x${txHash}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors"
-                  >
-                    View on Midnight Explorer <ExternalLink className="w-4 h-4" />
-                  </a>
-                </div>
               </div>
 
-              <div className="border-t border-black/5 pt-10 max-w-2xl mx-auto text-center">
-                <h3 className="text-xl font-semibold text-black mb-3">Generated QR Code</h3>
-                <p className="text-black/60 mb-8 leading-relaxed">
-                  This QR code contains the batch hash and a unique per-item secret. Print it on drug packaging for patient verification. Each physical drug unit should receive a unique QR code.
+              <div className="border-t border-black/5 pt-10 max-w-2xl mx-auto text-center flex flex-col items-center">
+                <h3 className="text-xl font-semibold text-black mb-3">Next Steps</h3>
+                <p className="text-black/60 mb-8 leading-relaxed max-w-lg">
+                  Your batch of {quantity} units has been secured on-chain. You can now generate and print the individual QR codes for each package unit.
                 </p>
                 
-                <div className="bg-white p-6 rounded-3xl inline-block shadow-sm border border-black/5 mb-6">
-                  <QRCode value={`${generatedHash}-${generatedSecret}`} size={200} />
-                </div>
-                
-                <div className="flex items-center justify-center gap-2 text-sm text-amber-700 bg-amber-50 px-4 py-3 rounded-xl border border-amber-100/50">
-                  <Lock className="w-4 h-4" />
-                  <span>The Item Secret is a private ZK witness and is never stored on-chain.</span>
-                </div>
-              </div>
+                <Link 
+                  href={`/batch/${batchNumber}`}
+                  className="bg-emerald-600 text-white hover:bg-emerald-700 px-8 py-4 rounded-2xl font-semibold text-lg flex items-center justify-center gap-3 transition-all shadow-md w-full max-w-sm mb-4"
+                >
+                  <QrCode className="w-5 h-5" />
+                  View Batch & QR Codes
+                </Link>
 
-              <div className="mt-12 text-center">
                 <button
-                  onClick={() => { setTxHash(null); setGeneratedHash(null); setGeneratedSecret(null); setDrugName(""); setManufacturer(""); setBatchNumber(""); setExpiryDate(""); }}
-                  className="bg-black text-white hover:bg-black/80 px-8 py-3.5 rounded-full font-medium transition-all"
+                  onClick={() => { setTxHash(null); setGeneratedHash(null); setDrugName(""); setManufacturer(""); setBatchNumber(""); setExpiryDate(""); setQuantity("1"); }}
+                  className="text-black/60 hover:text-black font-medium transition-colors"
                 >
                   Register Another Batch
                 </button>
@@ -215,6 +219,17 @@ export default function ManufacturerDashboard() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <label className="text-sm font-semibold text-black/70">Quantity (Units) *</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    placeholder="e.g. 100"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-black placeholder:text-black/30 focus:outline-none focus:ring-2 focus:ring-black/5 transition-all"
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-2">
                   <label className="text-sm font-semibold text-black/70">Expiry Date</label>
                   <input
                     type="date"
@@ -259,17 +274,19 @@ export default function ManufacturerDashboard() {
                         <th className="py-4 px-4 text-xs font-semibold text-black/50 uppercase tracking-wider">Date</th>
                         <th className="py-4 px-4 text-xs font-semibold text-black/50 uppercase tracking-wider">Drug Name</th>
                         <th className="py-4 px-4 text-xs font-semibold text-black/50 uppercase tracking-wider">Batch Number</th>
+                        <th className="py-4 px-4 text-xs font-semibold text-black/50 uppercase tracking-wider">Qty</th>
                         <th className="py-4 px-4 text-xs font-semibold text-black/50 uppercase tracking-wider">Batch Hash</th>
                       </tr>
                     </thead>
                     <tbody>
                       {issuedBatches.map((batch, idx) => (
-                        <tr key={idx} className="border-b border-black/5 hover:bg-slate-50/50 transition-colors group">
+                        <tr key={idx} className="border-b border-black/5 hover:bg-slate-50/50 transition-colors group cursor-pointer" onClick={() => router.push(`/batch/${batch.batch}`)}>
                           <td className="py-5 px-4 text-sm text-black/70">{batch.date}</td>
                           <td className="py-5 px-4 text-base font-medium text-black">{batch.name}</td>
-                          <td className="py-5 px-4 text-sm font-mono text-black/60">{batch.batch}</td>
+                          <td className="py-5 px-4 text-sm font-mono text-blue-600 hover:underline">{batch.batch}</td>
+                          <td className="py-5 px-4 text-sm text-black/70">{batch.quantity || 1}</td>
                           <td className="py-5 px-4">
-                            <div className="text-xs font-mono text-black/40 group-hover:text-black/60 transition-colors max-w-[150px] md:max-w-[300px] truncate" title={batch.hash}>
+                            <div className="text-xs font-mono text-black/40 group-hover:text-black/60 transition-colors max-w-[150px] md:max-w-[200px] truncate" title={batch.hash}>
                               {batch.hash}
                             </div>
                           </td>
