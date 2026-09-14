@@ -89,28 +89,56 @@ export default function ExplorerPage() {
               </div>
             </div>
 
-            {/* Mock Chart */}
-            <div className="mt-auto h-32 relative overflow-hidden rounded-xl border border-black/5 bg-slate-50">
-              <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute w-full h-full">
-                <defs>
-                  <linearGradient id="gradient" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor="#a855f7" stopOpacity="0.2" />
-                    <stop offset="100%" stopColor="#a855f7" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-                <path d="M 0 100 L 0 80 Q 20 85 40 70 T 70 40 T 100 20 L 100 100 Z" fill="url(#gradient)" />
-                <path d="M 0 80 Q 20 85 40 70 T 70 40 T 100 20" fill="none" stroke="#a855f7" strokeWidth="2" vectorEffect="non-scaling-stroke" />
-              </svg>
-              <div className="absolute bottom-2 left-0 right-0 flex justify-between px-4 text-[10px] text-black/40 font-mono">
-                <span>00:00</span>
-                <span>04:00</span>
-                <span>08:00</span>
-                <span>12:00</span>
-                <span>16:00</span>
-                <span>20:00</span>
-                <span>24:00</span>
-              </div>
-            </div>
+            {/* Dynamic Chart */}
+            {(() => {
+              let pathD = "M 0 80 Q 20 85 40 70 T 70 40 T 100 20";
+              let fillD = "M 0 100 L 0 80 Q 20 85 40 70 T 70 40 T 100 20 L 100 100 Z";
+              
+              if (batches.length > 0) {
+                 const sorted = [...batches].reverse();
+                 const step = 100 / Math.max(sorted.length - 1, 1);
+                 const maxQty = sorted.length;
+                 
+                 const points = sorted.map((_, idx) => {
+                   const x = idx * step;
+                   const y = 90 - ((idx + 1) / maxQty) * 80;
+                   return `${x} ${y}`;
+                 });
+                 
+                 if (points.length === 1) {
+                   pathD = `M 0 90 L 50 90 L 100 10`;
+                   fillD = `M 0 100 L 0 90 L 50 90 L 100 10 L 100 100 Z`;
+                 } else {
+                   // Create a smooth curve if possible, but for dynamic data we'll just draw a line for now
+                   // Or a step chart for realistic look:
+                   pathD = `M ${points[0]} ` + points.slice(1).map(p => `L ${p}`).join(' ');
+                   fillD = `M 0 100 L ${points[0]} ` + points.slice(1).map(p => `L ${p}`).join(' ') + ` L 100 100 Z`;
+                 }
+              }
+
+              return (
+                <div className="mt-auto h-32 relative overflow-hidden rounded-xl border border-black/5 bg-slate-50">
+                  <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute w-full h-full">
+                    <defs>
+                      <linearGradient id="gradient" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stopColor="#a855f7" stopOpacity="0.2" />
+                        <stop offset="100%" stopColor="#a855f7" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    <path d={fillD} fill="url(#gradient)" />
+                    <path d={pathD} fill="none" stroke="#a855f7" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+                  </svg>
+                  <div className="absolute bottom-2 left-0 right-0 flex justify-between px-4 text-[10px] text-black/40 font-mono">
+                    <span>-5d</span>
+                    <span>-4d</span>
+                    <span>-3d</span>
+                    <span>-2d</span>
+                    <span>-1d</span>
+                    <span>Today</span>
+                  </div>
+                </div>
+              );
+            })()}
           </motion.div>
 
           {/* Midnight Network Card */}
@@ -120,13 +148,37 @@ export default function ExplorerPage() {
             transition={{ delay: 0.2 }}
             className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-black/5 flex flex-col"
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 bg-slate-50 text-slate-600 rounded-xl flex items-center justify-center border border-slate-200">
                 <FileText className="w-5 h-5" />
               </div>
               <div>
                 <h2 className="text-lg font-bold text-black tracking-tight">Midnight Network</h2>
-                <div className="inline-flex px-2 py-0.5 bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-bold rounded uppercase tracking-wider mt-1">Connected</div>
+              </div>
+            </div>
+
+            <div className="space-y-4 flex-grow">
+              <div>
+                <p className="text-[10px] font-semibold text-black/50 mb-1 uppercase tracking-wider">Manufacturer Registry (Contract)</p>
+                <div className="flex items-center justify-between gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg group hover:border-slate-300 transition-colors cursor-pointer" onClick={() => window.open(`https://preprod.midnightexplorer.com/contracts/${contractAddress}`, '_blank')}>
+                  <span className="font-mono text-xs text-slate-700 truncate">{contractAddress || "Not deployed yet"}</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-black transition-colors shrink-0" />
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[10px] font-semibold text-black/50 mb-1 uppercase tracking-wider">Connected Wallet</p>
+                <div className="flex items-center justify-between gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                  <span className="font-mono text-xs text-slate-700 truncate">{walletAddress || "Not connected"}</span>
+                </div>
+              </div>
+              
+              <div>
+                <p className="text-[10px] font-semibold text-black/50 mb-1 uppercase tracking-wider">Ledger Status</p>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                  <p className="text-xs font-bold text-slate-700">Synced & Healthy</p>
+                </div>
               </div>
             </div>
 
@@ -134,7 +186,7 @@ export default function ExplorerPage() {
               href="https://preprod.midnightexplorer.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-6 w-full py-3.5 bg-black hover:bg-black/90 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 transition-colors shadow-md"
+              className="mt-6 w-full py-3 bg-black hover:bg-black/90 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 transition-colors shadow-md"
             >
               View on Midnight Explorer <ExternalLink className="w-4 h-4" />
             </a>

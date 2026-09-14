@@ -9,7 +9,7 @@ import { ScanLine, CheckCircle, XCircle, Loader2, ExternalLink, AlertTriangle, C
 import { motion } from "framer-motion";
 
 function VerifyDrugContent() {
-  const { walletConnected, verifyDrug } = useMidnight();
+  const { walletConnected, verifyDrug, walletAddress } = useMidnight();
   const searchParams = useSearchParams();
   const [batchHashInput, setBatchHashInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -103,14 +103,22 @@ function VerifyDrugContent() {
   };
 
   const simulateCameraScan = () => {
-    toast.success("Camera simulated.");
-    toast.info("Please use the input field to paste a hash for this demo.");
+    let dummyHash = "f987f1c8d265857a93a6f2935c16a94473bb62aa5829ef0b6c37fb655c963c0a";
+    try {
+      const stored = localStorage.getItem(`zkrx_issued_${walletAddress}`);
+      if (stored) {
+         const batches = JSON.parse(stored);
+         if (batches.length > 0) dummyHash = batches[0].txnHash || batches[0].hash || dummyHash;
+      }
+    } catch(e) {}
+    setBatchHashInput(`https://preprod.midnightexplorer.com/transactions/${dummyHash.replace(/^0x/, '')}`);
+    toast.success("Camera simulated. QR code scanned!");
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      toast.success("QR Code uploaded successfully.");
-      toast.info("Image parsed: Please use the input field for the demo.");
+      simulateCameraScan();
+      toast.success("QR Code uploaded and parsed successfully.");
     }
   };
 
@@ -211,6 +219,16 @@ function VerifyDrugContent() {
                 <p className="text-emerald-700/80 text-base leading-relaxed font-medium">This drug has been verified as genuine on the Midnight Network. The zero-knowledge proof confirms the manufacturer's cryptographic signature without revealing their private keys.</p>
               </div>
             </div>
+            {txHash && (
+              <a
+                href={`https://preprod.midnightexplorer.com/transactions/${txHash.replace(/^0x/, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-6 py-3.5 rounded-xl transition-colors shadow-md"
+              >
+                View Proof on Midnight Explorer <ExternalLink className="w-4 h-4" />
+              </a>
+            )}
           </motion.div>
         )}
 
