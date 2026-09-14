@@ -7,10 +7,16 @@
     "dev": "npm run dev --workspace=web-dapp",
     "build": "npm run compile --workspace=zk-circuit && npm run build --workspace=web-dapp",
     "test": "npm run test --workspace=zk-circuit",
-    "compile": "npm run compile --workspace=zk-circuit"
+    "compile": "npm run compile --workspace=zk-circuit",
+    "proof-server:start": "docker compose up -d",
+    "proof-server:stop": "docker compose down"
   },
   "workspaces": [
     "zk-circuit",
     "web-dapp"
-  ]
+  ],
+  "overrides": {
+    "@midnight-ntwrk/ledger-v8": "8.1.2",
+    "@midnight-ntwrk/onchain-runtime-v3": "^3.1.0"
+  }
 }
