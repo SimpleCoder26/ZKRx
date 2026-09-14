@@ -162,16 +162,10 @@ export default function BatchDetailsPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 print:grid-cols-3 print:gap-4">
                 {(batch.itemSecrets || [batch.itemSecret || "unknown"]).map((secret: string, idx: number) => {
                   
-                  // Construct Option A URL: Directs scanners to OUR Verify page, automatically filling the hash input.
-                  // E.g. https://our-app.com/verify?payload=BATCHHASH-SECRET
-                  const payload = `${batch.hash}-${secret}`;
-                  
-                  // In a real app we'd use window.location.origin, but since this might be scanned offline or from a different domain,
-                  // we will construct the URL relative to the current host if possible.
-                  // For the sake of the mockup, we will put the direct payload string because the verify page takes exactly that string.
-                  // But to make it a URL as recommended:
-                  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://zkrx.app';
-                  const qrUrl = `${baseUrl}/verify?payload=${payload}`;
+                  // Construct Option B URL: Directs scanners to Midnight Explorer.
+                  // E.g. https://preprod.midnightexplorer.com/transactions/0x...
+                  const txHash = batch.txnHash || batch.hash;
+                  const qrUrl = `https://preprod.midnightexplorer.com/transactions/0x${txHash}`;
 
                   return (
                     <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center text-center print:border-slate-400 print:break-inside-avoid">

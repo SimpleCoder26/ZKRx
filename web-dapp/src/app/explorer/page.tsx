@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { getContractAddress } from "@/config";
 import { useMidnight } from "@/providers/MidnightProvider";
-import { ExternalLink, Database, Activity, FileText } from "lucide-react";
+import { ExternalLink, Database, FileText, Copy, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
@@ -12,6 +12,14 @@ export default function ExplorerPage() {
   const contractAddress = getContractAddress();
   const { walletAddress } = useMidnight();
   const [batches, setBatches] = useState<any[]>([]);
+  const [copiedHash, setCopiedHash] = useState<string | null>(null);
+
+  const handleCopy = (hash: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    navigator.clipboard.writeText(hash);
+    setCopiedHash(hash);
+    setTimeout(() => setCopiedHash(null), 2000);
+  };
 
   useEffect(() => {
     if (walletAddress) {
@@ -43,9 +51,9 @@ export default function ExplorerPage() {
               Real-time immutable ledger for ZKRx pharmaceutical logistics.
             </p>
           </div>
-          <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 px-4 py-2 rounded-full shadow-sm shrink-0">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-            <span className="text-xs font-semibold text-emerald-800 tracking-wide uppercase">Network Status: <span className="text-emerald-600">Healthy (Preprod)</span></span>
+          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-4 py-2 rounded-full shadow-sm shrink-0">
+            <div className="w-2 h-2 rounded-full bg-slate-400"></div>
+            <span className="text-xs font-bold text-slate-600 tracking-widest uppercase">Status: <span className="text-slate-800">Active</span></span>
           </div>
         </motion.div>
 
@@ -86,12 +94,12 @@ export default function ExplorerPage() {
               <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute w-full h-full">
                 <defs>
                   <linearGradient id="gradient" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.2" />
-                    <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+                    <stop offset="0%" stopColor="#a855f7" stopOpacity="0.2" />
+                    <stop offset="100%" stopColor="#a855f7" stopOpacity="0" />
                   </linearGradient>
                 </defs>
                 <path d="M 0 100 L 0 80 Q 20 85 40 70 T 70 40 T 100 20 L 100 100 Z" fill="url(#gradient)" />
-                <path d="M 0 80 Q 20 85 40 70 T 70 40 T 100 20" fill="none" stroke="#3b82f6" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+                <path d="M 0 80 Q 20 85 40 70 T 70 40 T 100 20" fill="none" stroke="#a855f7" strokeWidth="2" vectorEffect="non-scaling-stroke" />
               </svg>
               <div className="absolute bottom-2 left-0 right-0 flex justify-between px-4 text-[10px] text-black/40 font-mono">
                 <span>00:00</span>
@@ -113,29 +121,27 @@ export default function ExplorerPage() {
             className="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-black/5 flex flex-col"
           >
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-slate-50 text-slate-600 rounded-xl flex items-center justify-center border border-slate-200">
                 <FileText className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-black">Midnight Network</h2>
-                <div className="inline-flex px-2 py-0.5 bg-blue-50 border border-blue-100 text-blue-700 text-[10px] font-bold rounded uppercase tracking-wider">Connected</div>
+                <h2 className="text-lg font-bold text-black tracking-tight">Midnight Network</h2>
+                <div className="inline-flex px-2 py-0.5 bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-bold rounded uppercase tracking-wider mt-1">Connected</div>
               </div>
             </div>
 
             <div className="space-y-5 flex-grow">
               <div>
                 <p className="text-xs font-semibold text-black/60 mb-2">Manufacturer Registry (Contract)</p>
-                <div className="flex items-center justify-between gap-2 p-3 bg-slate-50 border border-slate-100 rounded-xl">
-                  <span className="font-mono text-xs text-black/80 truncate">{contractAddress || "Not deployed yet"}</span>
-                  <a href={`https://preprod.midnightexplorer.com/contracts/${contractAddress}`} target="_blank" rel="noopener noreferrer" className="shrink-0 text-black/40 hover:text-blue-600 transition-colors">
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
+                <div className="flex items-center justify-between gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl group hover:border-slate-300 transition-colors cursor-pointer" onClick={() => window.open(`https://preprod.midnightexplorer.com/contracts/${contractAddress}`, '_blank')}>
+                  <span className="font-mono text-xs text-slate-700 truncate">{contractAddress || "Not deployed yet"}</span>
+                  <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-black transition-colors shrink-0" />
                 </div>
               </div>
               
               <div>
                 <p className="text-xs font-semibold text-black/60 mb-2">Ledger Status</p>
-                <p className="text-sm font-semibold text-blue-600">Synced & Healthy</p>
+                <p className="text-sm font-bold text-emerald-600">Synced & Healthy</p>
               </div>
             </div>
 
@@ -143,7 +149,7 @@ export default function ExplorerPage() {
               href="https://preprod.midnightexplorer.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-6 w-full py-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-blue-700 font-semibold text-sm rounded-xl flex items-center justify-center gap-2 transition-colors"
+              className="mt-6 w-full py-3.5 bg-black hover:bg-black/90 text-white font-bold text-sm rounded-xl flex items-center justify-center gap-2 transition-colors shadow-md"
             >
               View on Midnight Explorer <ExternalLink className="w-4 h-4" />
             </a>
@@ -157,15 +163,11 @@ export default function ExplorerPage() {
           transition={{ delay: 0.3 }}
           className="bg-white rounded-3xl shadow-sm border border-black/5 overflow-hidden"
         >
-          <div className="p-6 md:p-8 border-b border-black/5 flex items-center justify-between">
+          <div className="p-6 md:p-8 border-b border-black/5 flex items-center justify-between bg-slate-50">
             <div className="flex items-center gap-3">
-              <h2 className="text-xl font-semibold text-black">Latest Minted Batches</h2>
-              <span className="px-2 py-0.5 bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-bold rounded-full uppercase tracking-wider flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-                Live
-              </span>
+              <h2 className="text-xl font-bold text-black tracking-tight">Latest Minted Batches</h2>
             </div>
-            <Database className="w-5 h-5 text-black/30" />
+            <Database className="w-5 h-5 text-slate-400" />
           </div>
           
           <div className="overflow-x-auto">
@@ -184,26 +186,31 @@ export default function ExplorerPage() {
               <tbody>
                 {batches.length > 0 ? (
                   batches.map((batch, idx) => (
-                    <tr key={idx} className="border-t border-black/5 hover:bg-slate-50/50 transition-colors">
-                      <td className="py-4 px-6">
-                        <a 
-                          href={`https://preprod.midnightexplorer.com/transactions/0x${batch.txnHash}`} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="font-mono text-sm text-blue-600 hover:underline max-w-[120px] truncate block"
-                          title={batch.txnHash}
-                        >
-                          {batch.txnHash || batch.hash}
-                        </a>
+                    <tr key={idx} className="border-t border-black/5 hover:bg-slate-50/80 transition-colors">
+                      <td className="py-5 px-6">
+                        <div className="flex items-center gap-2 group">
+                          <a 
+                            href={`https://preprod.midnightexplorer.com/transactions/0x${batch.txnHash}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="font-mono text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:underline max-w-[120px] truncate block"
+                            title={batch.txnHash}
+                          >
+                            {batch.txnHash || batch.hash}
+                          </a>
+                          <button onClick={(e) => handleCopy(batch.txnHash || batch.hash, e)} className="p-1.5 rounded-md text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all opacity-0 group-hover:opacity-100">
+                            {copiedHash === (batch.txnHash || batch.hash) ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
                       </td>
-                      <td className="py-4 px-6">
-                        <span className="px-2 py-1 bg-slate-200/60 text-slate-700 text-xs font-medium rounded">MintBatch</span>
+                      <td className="py-5 px-6">
+                        <span className="px-2.5 py-1 bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold rounded uppercase tracking-wider">MintBatch</span>
                       </td>
-                      <td className="py-4 px-6 text-sm text-black/70">
+                      <td className="py-5 px-6 text-sm font-medium text-slate-500">
                         {batch.timestamp ? new Date(batch.timestamp).toLocaleDateString('en-GB') : batch.date}
                       </td>
-                      <td className="py-4 px-6">
-                        <Link href={`/batch/${batch.batch}`} className="font-mono text-sm text-blue-600 hover:underline font-semibold">
+                      <td className="py-5 px-6">
+                        <Link href={`/batch/${batch.batch}`} className="font-mono text-sm text-black hover:text-emerald-600 font-bold transition-colors">
                           {batch.batch}
                         </Link>
                       </td>

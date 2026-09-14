@@ -7,7 +7,7 @@ import { useMidnight } from "@/providers/MidnightProvider";
 import { WalletConnect } from "@/components/WalletConnect";
 import { Logo } from "@/components/Logo";
 import * as THREE from "three";
-import { Home, Factory, ScanLine, Database, Settings, HelpCircle, Menu, Bell, Lock, Wallet, ShieldCheck } from "lucide-react";
+import { Home, Factory, ScanLine, Database, Settings, HelpCircle, Menu, Bell, Lock, Wallet, ShieldCheck, FileText, QrCode } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -113,8 +113,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const navLinks = [
     { name: "Home", href: "/", Icon: Home },
-    { name: "Registry", href: "/manufacturer", Icon: Factory },
-    { name: "Verify", href: "/verify", Icon: ScanLine },
+    { name: "Registry", href: "/manufacturer", Icon: FileText },
+    { name: "Verify", href: "/verify", Icon: QrCode },
     { name: "Explorer", href: "/explorer", Icon: Database },
   ];
 
@@ -136,18 +136,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* SideNavBar */}
       <nav className={`fixed left-0 top-0 h-screen w-[280px] flex flex-col bg-white z-50 p-6 border-r border-black/5 transition-transform duration-300 md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex flex-col gap-y-4 h-full">
-          <div className="mb-8 pl-2">
-            <Link href="/" className="flex items-center gap-2.5">
-              <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center text-white">
-                <ShieldCheck size={20} />
+          <div className="mb-4 pt-2 px-2">
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-300">
+                <span className="text-white font-bold text-xl tracking-tighter">ZK</span>
               </div>
-              <span className="text-xl font-bold tracking-tight text-black">
-                ZKRx
+              <span className="text-2xl font-bold tracking-tight text-black flex items-center">
+                ZKRx<span className="text-emerald-600">.</span>
               </span>
             </Link>
           </div>
           
           <div className="flex flex-col gap-1.5 flex-grow">
+            <div className="px-4 mb-2 mt-2">
+              <p className="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase">Menu</p>
+            </div>
             {navLinks.map((link) => {
               const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
               return (
@@ -155,14 +158,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   key={link.name}
                   href={link.href}
                   onClick={() => setIsSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all ${
+                  className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 group ${
                     isActive 
-                      ? "bg-slate-100/80 text-black font-semibold shadow-sm" 
-                      : "text-black/50 hover:text-black hover:bg-slate-50 font-medium"
+                      ? "bg-white shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] text-emerald-700" 
+                      : "text-slate-500 hover:bg-slate-100/80 hover:text-slate-900"
                   }`}
                 >
-                  <link.Icon className={`w-5 h-5 ${isActive ? 'text-emerald-600' : ''}`} />
-                  <span className="text-sm tracking-wide">{link.name}</span>
+                  <link.Icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? 'scale-110 text-emerald-600' : 'group-hover:scale-110'}`} />
+                  <span className={`text-sm tracking-wide ${isActive ? 'font-bold' : 'font-semibold'}`}>
+                    {link.name}
+                  </span>
+                  {isActive && (
+                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                  )}
                 </Link>
               );
             })}
