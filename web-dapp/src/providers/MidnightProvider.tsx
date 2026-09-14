@@ -649,9 +649,14 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
                               </svg>
                             </motion.div>
                           </div>
-                          <div className="flex flex-col items-center gap-1.5">
+                          <div className="flex flex-col items-center gap-1.5 mt-2">
                             <span className="font-semibold text-black text-lg tracking-tight">Authenticating</span>
                             <span className="text-sm text-black/50">Awaiting wallet approval...</span>
+                            <div className="mt-3 px-3.5 py-2 bg-blue-50/50 border border-blue-100/50 rounded-lg text-center max-w-[280px]">
+                              <span className="text-xs text-blue-700/80 font-medium leading-relaxed">
+                                Please keep your wallet extension open for a smoother experience
+                              </span>
+                            </div>
                           </div>
                         </motion.div>
                       ) : (
@@ -708,8 +713,10 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
                             1
                           </div>
                           <div className="flex flex-col items-start">
-                            <span className="font-semibold text-black text-lg">1A.M. Wallet</span>
-                            <span className="text-[11px] font-bold tracking-wider text-emerald-600 uppercase mt-0.5">Recommended</span>
+                            <span className="font-semibold text-black text-lg leading-none mt-0.5">1A.M. Wallet</span>
+                            <span className="inline-flex items-center rounded-md bg-slate-50 px-1.5 py-0.5 mt-1.5 text-[10px] font-medium text-slate-500 ring-1 ring-inset ring-slate-200/50">
+                              Browser Prover
+                            </span>
                           </div>
                         </div>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-black/20 group-hover:text-black transition-colors" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -731,26 +738,30 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
                             </svg>
                           </div>
                           <div className="flex flex-col items-start">
-                            <span className={`font-semibold text-lg ${proofServerStatus === 'online' ? 'text-black' : 'text-slate-500'}`}>Lace Wallet</span>
+                            <span className={`font-semibold text-lg leading-none mt-0.5 ${proofServerStatus === 'online' ? 'text-black' : 'text-slate-500'}`}>Lace Wallet</span>
                             
                             {proofServerStatus === 'checking' && (
-                              <div className="flex items-center gap-1.5 mt-0.5">
-                                <div className="w-2 h-2 rounded-full border-2 border-amber-600 border-t-transparent animate-spin"></div>
-                                <span className="text-[11px] font-bold tracking-wider text-amber-600 uppercase">Waking up server...</span>
+                              <div className="flex items-center gap-1.5 mt-1.5">
+                                <div className="w-2.5 h-2.5 rounded-full border-[1.5px] border-slate-400 border-t-transparent animate-spin"></div>
+                                <span className="inline-flex items-center rounded-md bg-slate-50 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 ring-1 ring-inset ring-slate-200/50">
+                                  Connecting server...
+                                </span>
                               </div>
                             )}
                             
                             {proofServerStatus === 'online' && (
-                              <div className="flex items-center gap-1 mt-0.5">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                                <span className="text-[11px] font-bold tracking-wider text-emerald-600 uppercase">Server ready to use</span>
+                              <div className="flex items-center gap-1 mt-1.5">
+                                <span className="inline-flex items-center rounded-md bg-slate-50 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 ring-1 ring-inset ring-slate-200/50">
+                                  Cloud Prover Ready
+                                </span>
                               </div>
                             )}
 
                             {proofServerStatus === 'offline' && (
-                              <div className="flex items-center gap-1 mt-0.5">
-                                <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
-                                <span className="text-[11px] font-bold tracking-wider text-red-500 uppercase">Server offline</span>
+                              <div className="flex items-center gap-1 mt-1.5">
+                                <span className="inline-flex items-center rounded-md bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-500 ring-1 ring-inset ring-red-200/50">
+                                  Server Offline
+                                </span>
                               </div>
                             )}
                           </div>
