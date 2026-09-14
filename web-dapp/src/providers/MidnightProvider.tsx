@@ -189,38 +189,63 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
         throw new Error('No Midnight wallet provider found');
       }
 
-      const networksToTry = ['preprod', 'testnet'];
-      let api: ConnectedAPI | null = null;
+      let api: any = null;
       let connectedNetwork = '';
-      for (const net of networksToTry) {
-        try {
-          console.log(`[ZKRx] Attempting connect with network: ${net}`);
-          api = await wallet.connect(net);
-          connectedNetwork = net;
-          console.log(`[ZKRx] ✓ Connected on network: ${net}`);
-          break;
-        } catch (e: any) {
-          const msg = e?.message || String(e);
-          console.warn(`[ZKRx] ✗ Network ${net}: ${msg}`);
-          continue;
+
+      const tryConnect = async () => {
+        const networksToTry = ['preprod', 'testnet'];
+        for (const net of networksToTry) {
+          try {
+            console.log(`[ZKRx] Attempting connect with network: ${net}`);
+            api = await wallet.connect(net);
+            connectedNetwork = net;
+            console.log(`[ZKRx] ✓ Connected on network: ${net}`);
+            return true;
+          } catch (e: any) {
+            console.warn(`[ZKRx] ✗ Network ${net}: ${e?.message || String(e)}`);
+          }
         }
+        
+        // Fallback: try connecting without network argument (CIP-30 style)
+        try {
+          console.log(`[ZKRx] Attempting connect without network argument (fallback)`);
+          // @ts-ignore - Some wallet implementations allow undefined for CIP-30 style enable
+          api = await wallet.connect();
+          connectedNetwork = 'preprod'; // Assume preprod on success
+          console.log(`[ZKRx] ✓ Connected without arguments`);
+          return true;
+        } catch (e: any) {
+          console.warn(`[ZKRx] ✗ Fallback connect: ${e?.message || String(e)}`);
+        }
+        return false;
+      };
+
+      let success = await tryConnect();
+      
+      // If it failed, wait 500ms and try once more (fixes 1A.M. sleep/glitch issue)
+      if (!success) {
+        console.log('[ZKRx] Retrying wallet connection in 500ms...');
+        await new Promise(r => setTimeout(r, 500));
+        success = await tryConnect();
       }
 
       if (!api || !connectedNetwork) {
         alert(
           'ZKRx requires the Midnight Preprod Network.\n\n' +
-          'Your wallet is currently set to a different network.\n' +
-          'Please open your wallet extension, switch to Preprod, and try connecting again.'
+          'Connection failed. Your wallet may be locked, or it is set to a different network.\n' +
+          'Please open your wallet extension, ensure it is unlocked and set to Preprod, and try again.'
         );
-        throw new Error('Wallet not on Preprod network');
+        throw new Error('Wallet connection failed or not on Preprod network');
       }
+
+      const activeApi: ConnectedAPI = api;
 
       if (connectedNetwork === 'testnet') {
         connectedNetwork = 'preprod';
       }
 
-      setConnectedApi(api);
-      connectedApiRef.current = api;
+      setConnectedApi(activeApi);
+      connectedApiRef.current = activeApi;
       localStorage.setItem('zkrx_connected_wallet', walletId);
       setNetworkId(connectedNetwork);
       const { getContractAddress } = await import('@/config');
@@ -238,17 +263,17 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
         const { setNetworkId: setMidnightNetworkId } = await import('@midnight-ntwrk/midnight-js-network-id');
         setMidnightNetworkId(connectedNetwork);
 
-        const config = await api.getConfiguration();
+        const config = await activeApi.getConfiguration();
         const zkConfig = new fetchZkConfigProvider(window.location.origin + '/managed/zkrx/', window.fetch.bind(window));
 
-        const shieldedAddresses = await api.getShieldedAddresses();
+        const shieldedAddresses = await activeApi.getShieldedAddresses();
 
         const walletProvider = {
           getCoinPublicKey: () => shieldedAddresses.shieldedCoinPublicKey,
           getEncryptionPublicKey: () => shieldedAddresses.shieldedEncryptionPublicKey,
           balanceTx: async (tx: any) => {
             const txHex = toHex(tx.serialize());
-            const balanced = await api!.balanceUnsealedTransaction(txHex, { payFees: true });
+            const balanced = await activeApi.balanceUnsealedTransaction(txHex, { payFees: true });
             if (!balanced?.tx) throw new Error('balanceUnsealedTransaction failed');
             const { Transaction } = await import('@midnight-ntwrk/midnight-js-protocol/ledger');
             return Transaction.deserialize('signature', 'proof', 'binding', fromHex(balanced.tx));
@@ -262,7 +287,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
 
             // submitTransaction returns void per the DApp Connector API spec.
             // We must compute the transaction hash using the ledger's built-in method.
-            await api!.submitTransaction(txHex);
+            await activeApi.submitTransaction(txHex);
 
             // transactionHash() already returns a hex string, do not wrap in toHex()
             const hashHex = tx.transactionHash();
@@ -273,10 +298,10 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
 
         let accountId = 'default-zkrx-account';
         try {
-          accountId = (await api.getUnshieldedAddress()).unshieldedAddress;
+          accountId = (await activeApi.getUnshieldedAddress()).unshieldedAddress;
         } catch (e) {
           try {
-            accountId = (await api.getShieldedAddresses()).shieldedAddress;
+            accountId = (await activeApi.getShieldedAddresses()).shieldedAddress;
           } catch (e2) {
             accountId = 'anonymous-zkrx-account-' + Date.now();
           }
@@ -302,9 +327,9 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
         // tries to fetch from a non-existent remote server, causing "Failed to fetch").
         // Only use getProvingProvider for wallets that support it (1AM).
         const isLaceWallet = walletId === 'lace';
-        if (!isLaceWallet && typeof api!.getProvingProvider === 'function') {
+        if (!isLaceWallet && typeof activeApi.getProvingProvider === 'function') {
           console.log('[ZKRx] 🚀 Using Wallet-provided in-browser Proving Provider (1AM)');
-          const baseProvingProvider = await api!.getProvingProvider(zkConfig);
+          const baseProvingProvider = await activeApi.getProvingProvider(zkConfig);
           providers.proofProvider = {
             async proveTx(unprovenTx: any) {
               const { CostModel } = await import('@midnight-ntwrk/midnight-js-protocol/ledger');
@@ -337,7 +362,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
       }
 
       try {
-        const addrInfo = await api.getUnshieldedAddress();
+        const addrInfo = await activeApi.getUnshieldedAddress();
         setWalletAddress(addrInfo.unshieldedAddress);
         walletAddressRef.current = addrInfo.unshieldedAddress;
         localStorage.setItem('zkrx_wallet_address', addrInfo.unshieldedAddress);
@@ -346,7 +371,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
           throw new Error('Your wallet is locked. Please open the extension and unlock it first.');
         }
         try {
-          const shielded = await api.getShieldedAddresses();
+          const shielded = await activeApi.getShieldedAddresses();
           const addr = shielded.shieldedAddress || connectedNetwork;
           setWalletAddress(addr);
           walletAddressRef.current = addr;
@@ -360,7 +385,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
       }
 
       try {
-        const dust = await api.getDustBalance();
+        const dust = await activeApi.getDustBalance();
         // Dust balance has 15 decimals of precision. BigInt division preserves precision safely before Number cast.
         const formattedBalance = (Number(dust.balance / BigInt(10000000000000)) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         setWalletBalance(formattedBalance);
