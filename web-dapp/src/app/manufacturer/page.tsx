@@ -152,9 +152,20 @@ export default function ManufacturerDashboard() {
                     <div className="font-mono text-sm text-slate-700 truncate">
                       {txHash}
                     </div>
-                    <button onClick={() => { navigator.clipboard.writeText(txHash); toast.success("Copied!"); }} className="shrink-0 p-2 hover:bg-slate-200 rounded-lg transition-colors">
-                      <Copy className="w-4 h-4 text-slate-500" />
-                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button onClick={() => { navigator.clipboard.writeText(txHash); toast.success("Copied!"); }} className="p-2 hover:bg-slate-200 rounded-lg transition-colors" title="Copy Transaction Hash">
+                        <Copy className="w-4 h-4 text-slate-500" />
+                      </button>
+                      <a 
+                        href={`https://preprod.midnightexplorer.com/transaction/${txHash?.startsWith('0x') ? txHash : '0x' + txHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
+                        title="View on Midnight Explorer"
+                      >
+                        <ExternalLink className="w-4 h-4 text-slate-500" />
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
