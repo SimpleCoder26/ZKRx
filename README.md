@@ -118,7 +118,7 @@ To eliminate local resource constraints and cross-origin bottlenecks, ZKRx utili
 <br>
 
 <!-- Insert Screenshot Here -->
-[To be added by author]
+<img src="./web-dapp/img/compile-out.png" width="800" alt="Compile Output">
 </details>
 
 ### 2. Verified Preprod Network Deployment
@@ -128,18 +128,10 @@ To eliminate local resource constraints and cross-origin bottlenecks, ZKRx utili
 <br>
 
 <!-- Insert Screenshot Here -->
-[To be added by author]
+<img src="./web-dapp/img/contracts-deployed.png" width="800" alt="Deployed Contract">
 </details>
 
-### 3. Verified ZK-Proof Submission on Preprod
-*Official Midnight Explorer verification proving the successful submission of a Zero-Knowledge Proof to the Preprod network.*
-<details open>
-<summary><b>View Successful Transaction</b></summary>
-<br>
 
-<!-- Insert Screenshot Here -->
-[To be added by author]
-</details>
 
 ### 4. Passing Test Suite (Level 3)
 *Terminal output proving 3+ successful passing tests for the Smart Contract invariants.*
@@ -148,7 +140,7 @@ To eliminate local resource constraints and cross-origin bottlenecks, ZKRx utili
 <br>
 
 <!-- Insert Screenshot Here -->
-[To be added by author]
+<img src="./web-dapp/img/3+test.png" width="800" alt="Passing Tests">
 </details>
 
 ### 5. Unified CI/CD Pipeline (Level 3)
@@ -158,26 +150,9 @@ To eliminate local resource constraints and cross-origin bottlenecks, ZKRx utili
 <br>
 
 <!-- Insert Screenshot Here -->
-[To be added by author]
+<img src="./web-dapp/img/ci-cd-pipeline.png" width="800" alt="CI/CD Pipeline">
 </details>
 
----
-
-## 📱 SEAMLESS MOBILE UX (RESPONSIVE DESIGN)
-
-ZKRx is fully optimized for mobile devices. We implemented native responsive layouts, including touch-optimized menus for the main navigation and the dashboard sidebar, ensuring the entire dApp works perfectly on smartphones.
-
-### 6. Mobile Responsiveness Showcase
-*Screenshots demonstrating the native mobile layout and custom aesthetic menus.*
-<details open>
-<summary><b>View Mobile Layouts</b></summary>
-<br>
-
-<div align="center">
-  <!-- Insert Mobile Screenshots Here -->
-  [To be added by author]
-</div>
-</details>
 
 ---
 
