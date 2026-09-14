@@ -1,8 +1,10 @@
 'use client';
 import React, { useState } from 'react';
 import { useMidnight } from '@/providers/MidnightProvider';
-import { AppShell } from '@/components/layout/AppShell';
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { ShieldCheck, Loader2, CheckCircle, AlertCircle, Copy, ExternalLink } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function AdminPage() {
   const { walletConnected, connectWallet, deploySmartContract } = useMidnight();
@@ -37,87 +39,114 @@ export default function AdminPage() {
   };
 
   return (
-    <AppShell>
-      <div className="p-4 md:p-8 max-w-3xl mx-auto">
-        <div className="mb-8">
-          <h1 className="font-headline-lg text-headline-lg text-on-surface flex items-center gap-3">
-            <ShieldCheck className="w-8 h-8 text-primary" />
-            Contract Deployment
-          </h1>
-          <p className="font-body-md text-body-md text-on-surface-variant mt-2">
-            Deploy a new instance of the ZKRx smart contract to the Midnight Preprod network directly from your browser wallet.
-          </p>
-        </div>
+    <main className="flex flex-col bg-[#F5F5F5] min-h-screen">
+      <Navbar />
+      
+      <div className="flex-grow pt-32 pb-20 px-6">
+        <div className="max-w-3xl mx-auto">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-10 text-center"
+          >
+            <h1 className="text-4xl md:text-5xl font-medium tracking-tight text-black mb-4">
+              Contract Deployment
+            </h1>
+            <p className="text-lg text-black/60 max-w-2xl mx-auto leading-relaxed">
+              Deploy a new instance of the ZKRx smart contract to the Midnight Preprod network directly from your browser wallet.
+            </p>
+          </motion.div>
 
-        {/* Existing deployment */}
-        {deployedAddress && status !== 'deployed' && (
-          <div className="glass-card rounded-2xl p-6 mb-6 border border-emerald-200 bg-emerald-50/30">
-            <h3 className="font-headline-md text-lg font-bold text-on-surface mb-2 flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-emerald-600" /> Active Contract
-            </h3>
-            <div className="font-data-mono text-xs bg-white/70 p-3 rounded-lg break-all border border-emerald-200">{deployedAddress}</div>
-            <a
-              href={`https://preprod.midnightexplorer.com/contracts/${deployedAddress}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-emerald-700 hover:underline text-sm mt-2 font-semibold"
+          {/* Existing deployment */}
+          {deployedAddress && status !== 'deployed' && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-emerald-50 rounded-3xl p-8 mb-8 shadow-sm border border-emerald-100/50"
             >
-              View on Midnight Explorer <ExternalLink className="w-4 h-4" />
-            </a>
-          </div>
-        )}
-
-        <div className="glass-card rounded-2xl p-8">
-          <h2 className="font-headline-md text-xl font-bold text-on-surface mb-6 flex items-center gap-2">
-            <ShieldCheck className="w-6 h-6 text-primary" /> Deployer Panel
-          </h2>
-
-          {status === 'idle' || status === 'error' ? (
-            <button
-              onClick={handleDeploy}
-              disabled={!walletConnected}
-              className="w-full py-4 bg-primary text-on-primary hover:bg-primary/90 font-semibold rounded-xl transition-all shadow-md hover:shadow-lg text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Deploy ZKRx Contract to Midnight
-            </button>
-          ) : status === 'deploying' ? (
-            <button className="w-full py-4 bg-primary-fixed text-primary font-semibold rounded-xl flex items-center justify-center gap-2 cursor-not-allowed" disabled>
-              <Loader2 className="animate-spin" size={20} />
-              Deploying... Please approve in your wallet
-            </button>
-          ) : (
-            <div className="p-6 bg-emerald-50 border border-emerald-200 rounded-xl">
-              <div className="flex items-center gap-2 font-bold text-emerald-800 mb-3 text-lg">
-                <CheckCircle size={24} /> Successfully Deployed!
+              <h3 className="text-xl font-semibold text-emerald-800 tracking-tight mb-4 flex items-center gap-2">
+                <CheckCircle className="w-6 h-6 text-emerald-600" /> Active Contract
+              </h3>
+              <div className="font-mono text-sm bg-white p-4 rounded-xl break-all border border-emerald-100 shadow-sm mb-4">
+                {deployedAddress}
               </div>
-              <div className="font-data-mono text-xs bg-white p-3 rounded-lg break-all border border-emerald-100 flex items-center justify-between gap-2 mb-3">
-                <span className="text-on-surface">{deployedAddress}</span>
-                <button onClick={copyAddress} className="hover:text-emerald-600 text-on-surface-variant shrink-0">
-                  <Copy size={16} />
-                </button>
-              </div>
-              {copied && <span className="text-xs text-emerald-600 mb-2 block">Copied to clipboard!</span>}
               <a
                 href={`https://preprod.midnightexplorer.com/contracts/${deployedAddress}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-primary hover:underline text-sm font-semibold"
+                className="inline-flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 hover:underline text-sm font-medium transition-colors"
               >
-                View on Midnight Explorer <ExternalLink size={14} />
+                View on Midnight Explorer <ExternalLink className="w-4 h-4" />
               </a>
-            </div>
+            </motion.div>
           )}
 
-          {status === 'error' && errorMsg && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
-              <div className="flex items-center gap-2 font-bold text-red-700 mb-1">
-                <AlertCircle size={18} /> Deployment Failed
-              </div>
-              <p className="text-xs text-red-600 break-words font-data-mono bg-white p-2 border border-red-100 rounded">{errorMsg}</p>
-            </div>
-          )}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-black/5"
+          >
+            <h2 className="text-2xl font-semibold text-black tracking-tight mb-8 flex items-center gap-3">
+              <ShieldCheck className="w-7 h-7 text-black/40" /> Deployer Panel
+            </h2>
+
+            {status === 'idle' || status === 'error' ? (
+              <button
+                onClick={handleDeploy}
+                disabled={!walletConnected}
+                className="w-full py-4 bg-black text-white hover:bg-black/80 font-semibold rounded-2xl transition-all shadow-md hover:shadow-lg text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Deploy ZKRx Contract to Midnight
+              </button>
+            ) : status === 'deploying' ? (
+              <button className="w-full py-4 bg-black/5 text-black/50 font-semibold rounded-2xl flex items-center justify-center gap-3 cursor-not-allowed border border-black/5" disabled>
+                <Loader2 className="animate-spin w-5 h-5" />
+                Deploying... Please approve in your wallet
+              </button>
+            ) : (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="p-8 bg-emerald-50 border border-emerald-100 rounded-2xl"
+              >
+                <div className="flex items-center gap-3 font-semibold text-emerald-800 mb-6 text-xl tracking-tight">
+                  <CheckCircle className="w-7 h-7 text-emerald-600" /> Successfully Deployed!
+                </div>
+                <div className="font-mono text-sm bg-white p-4 rounded-xl break-all border border-emerald-100 flex items-center justify-between gap-4 mb-4 shadow-sm">
+                  <span className="text-slate-700">{deployedAddress}</span>
+                  <button onClick={copyAddress} className="hover:bg-slate-100 p-2 rounded-lg text-slate-500 transition-colors shrink-0">
+                    <Copy size={18} />
+                  </button>
+                </div>
+                {copied && <span className="text-xs font-medium text-emerald-600 mb-4 block">Copied to clipboard!</span>}
+                <a
+                  href={`https://preprod.midnightexplorer.com/contracts/${deployedAddress}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 hover:underline text-sm font-medium"
+                >
+                  View on Midnight Explorer <ExternalLink size={16} />
+                </a>
+              </motion.div>
+            )}
+
+            {status === 'error' && errorMsg && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-6 p-6 bg-red-50 border border-red-100 rounded-2xl"
+              >
+                <div className="flex items-center gap-2 font-semibold text-red-800 mb-3 tracking-tight">
+                  <AlertCircle size={20} className="text-red-600" /> Deployment Failed
+                </div>
+                <p className="text-sm text-red-700 break-words font-mono bg-white/60 p-4 border border-red-100/50 rounded-xl leading-relaxed">{errorMsg}</p>
+              </motion.div>
+            )}
+          </motion.div>
         </div>
       </div>
-    </AppShell>
+      <Footer />
+    </main>
   );
 }

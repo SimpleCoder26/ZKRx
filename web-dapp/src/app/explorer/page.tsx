@@ -1,107 +1,138 @@
 "use client";
 
-import { AppShell } from "@/components/layout/AppShell";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { Database, ExternalLink } from "lucide-react";
 import { getContractAddress } from "@/config";
+import { motion } from "framer-motion";
 
 export default function ExplorerPage() {
   const contractAddress = getContractAddress();
 
   return (
-    <AppShell>
-      <div className="p-4 md:p-8 max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="font-headline-lg text-headline-lg text-on-surface flex items-center gap-3">
-            <Database className="w-8 h-8 text-primary" />
-            ZKRx On-Chain Explorer
-          </h1>
-          <p className="font-body-md text-body-md text-on-surface-variant mt-2">
-            View registered batches and verification activity on the Midnight Network.
-          </p>
-        </div>
+    <main className="flex flex-col bg-[#F5F5F5] min-h-screen">
+      <Navbar />
+      
+      <div className="flex-grow pt-32 pb-20 px-6">
+        <div className="max-w-4xl mx-auto">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-10 text-center"
+          >
+            <h1 className="text-4xl md:text-5xl font-medium tracking-tight text-black mb-4">
+              ZKRx On-Chain Explorer
+            </h1>
+            <p className="text-lg text-black/60 max-w-2xl mx-auto leading-relaxed">
+              View registered batches and verification activity on the Midnight Network.
+            </p>
+          </motion.div>
 
-        {/* Contract Info */}
-        <div className="glass-card rounded-2xl p-6 mb-6">
-          <h2 className="font-headline-md text-lg text-on-surface font-bold mb-4">Deployed Contract</h2>
-          <div className="space-y-3">
-            <div>
-              <label className="font-label-caps text-label-caps text-on-surface-variant block mb-1">Network</label>
-              <span className="font-data-mono text-data-mono text-on-surface">Midnight Preprod</span>
+          {/* Contract Info */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-black/5 mb-8"
+          >
+            <h2 className="text-2xl font-semibold text-black tracking-tight mb-6">Deployed Contract</h2>
+            <div className="space-y-6">
+              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Network</label>
+                <span className="font-mono text-sm text-slate-700 font-medium">Midnight Preprod</span>
+              </div>
+              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Contract Address</label>
+                {contractAddress ? (
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="font-mono text-sm text-slate-700 break-all bg-white p-3 rounded-xl border border-slate-200/60 shadow-sm flex-1">
+                      {contractAddress}
+                    </span>
+                    <a
+                      href={`https://preprod.midnightexplorer.com/contracts/${contractAddress}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="shrink-0 p-3 bg-white text-blue-600 hover:text-blue-700 hover:bg-blue-50 border border-slate-200/60 rounded-xl transition-colors shadow-sm flex items-center justify-center"
+                      title="View on Midnight Explorer"
+                    >
+                      <ExternalLink className="w-5 h-5" />
+                    </a>
+                  </div>
+                ) : (
+                  <span className="text-black/40 text-sm">No contract deployed yet.</span>
+                )}
+              </div>
             </div>
-            <div>
-              <label className="font-label-caps text-label-caps text-on-surface-variant block mb-1">Contract Address</label>
-              {contractAddress ? (
-                <div className="flex items-center gap-2">
-                  <span className="font-data-mono text-data-mono text-on-surface break-all text-xs bg-surface-container p-2 rounded-lg border border-outline-variant/20 flex-1">
-                    {contractAddress}
-                  </span>
-                  <a
-                    href={`https://preprod.midnightexplorer.com/contracts/${contractAddress}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="shrink-0 text-primary hover:text-primary-container transition-colors"
-                  >
-                    <ExternalLink className="w-5 h-5" />
-                  </a>
+          </motion.div>
+
+          {/* Ledger State Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-white rounded-3xl p-8 shadow-sm border border-black/5 flex flex-col"
+            >
+              <h3 className="text-xl font-semibold text-black mb-3">Registered Batches</h3>
+              <p className="text-black/60 text-sm mb-6 flex-grow leading-relaxed">
+                All pharmaceutical batches registered via the <code className="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 text-xs">registerBatch</code> circuit.
+              </p>
+              <div className="text-4xl font-mono font-medium text-black mb-2">—</div>
+              <p className="text-xs text-black/40 font-medium uppercase tracking-wider">Connect wallet to view live data</p>
+            </motion.div>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-white rounded-3xl p-8 shadow-sm border border-black/5 flex flex-col"
+            >
+              <h3 className="text-xl font-semibold text-black mb-3">Consumed Nullifiers</h3>
+              <p className="text-black/60 text-sm mb-6 flex-grow leading-relaxed">
+                Anti-counterfeit nullifiers recorded via the <code className="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-700 text-xs">verifyDrug</code> circuit.
+              </p>
+              <div className="text-4xl font-mono font-medium text-emerald-600 mb-2">—</div>
+              <p className="text-xs text-black/40 font-medium uppercase tracking-wider">Each nullifier is a unique verification</p>
+            </motion.div>
+          </div>
+
+          {/* External Links */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="bg-white rounded-3xl p-8 shadow-sm border border-black/5"
+          >
+            <h3 className="text-xl font-semibold text-black mb-6">External Resources</h3>
+            <div className="space-y-4">
+              <a
+                href="https://preprod.midnightexplorer.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between p-5 bg-slate-50 border border-slate-100 rounded-2xl hover:border-blue-200 hover:bg-blue-50/50 transition-colors group"
+              >
+                <div>
+                  <span className="text-black font-semibold block mb-1">Midnight Explorer</span>
+                  <p className="text-sm text-black/50">Browse all transactions on the Midnight Preprod network</p>
                 </div>
-              ) : (
-                <span className="text-on-surface-variant text-sm">No contract deployed yet. Go to the Admin page to deploy.</span>
-              )}
+                <ExternalLink className="w-5 h-5 text-black/30 group-hover:text-blue-600 transition-colors" />
+              </a>
+              <a
+                href="https://midnight.network"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between p-5 bg-slate-50 border border-slate-100 rounded-2xl hover:border-blue-200 hover:bg-blue-50/50 transition-colors group"
+              >
+                <div>
+                  <span className="text-black font-semibold block mb-1">Midnight Network</span>
+                  <p className="text-sm text-black/50">Learn about the Midnight blockchain and its privacy features</p>
+                </div>
+                <ExternalLink className="w-5 h-5 text-black/30 group-hover:text-blue-600 transition-colors" />
+              </a>
             </div>
-          </div>
-        </div>
-
-        {/* Ledger State Info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div className="glass-card rounded-2xl p-6">
-            <h3 className="font-headline-md text-lg font-bold text-on-surface mb-2">Registered Batches</h3>
-            <p className="text-on-surface-variant text-sm mb-4">
-              All pharmaceutical batches registered via the <code className="font-data-mono bg-surface-container px-1 rounded">registerBatch</code> circuit.
-            </p>
-            <div className="text-4xl font-bold text-primary font-data-mono">—</div>
-            <p className="text-xs text-on-surface-variant mt-1">Connect wallet and deploy contract to view live data</p>
-          </div>
-          <div className="glass-card rounded-2xl p-6">
-            <h3 className="font-headline-md text-lg font-bold text-on-surface mb-2">Consumed Nullifiers</h3>
-            <p className="text-on-surface-variant text-sm mb-4">
-              Anti-counterfeit nullifiers recorded via the <code className="font-data-mono bg-surface-container px-1 rounded">verifyDrug</code> circuit.
-            </p>
-            <div className="text-4xl font-bold text-emerald-600 font-data-mono">—</div>
-            <p className="text-xs text-on-surface-variant mt-1">Each nullifier represents a unique drug verification</p>
-          </div>
-        </div>
-
-        {/* External Links */}
-        <div className="glass-card rounded-2xl p-6">
-          <h3 className="font-headline-md text-lg font-bold text-on-surface mb-4">External Resources</h3>
-          <div className="space-y-3">
-            <a
-              href="https://preprod.midnightexplorer.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-between p-4 bg-surface-container rounded-xl hover:bg-surface-container-high transition-colors group"
-            >
-              <div>
-                <span className="font-label-caps text-on-surface font-semibold">Midnight Explorer</span>
-                <p className="text-xs text-on-surface-variant">Browse all transactions on the Midnight Preprod network</p>
-              </div>
-              <ExternalLink className="w-5 h-5 text-on-surface-variant group-hover:text-primary transition-colors" />
-            </a>
-            <a
-              href="https://midnight.network"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-between p-4 bg-surface-container rounded-xl hover:bg-surface-container-high transition-colors group"
-            >
-              <div>
-                <span className="font-label-caps text-on-surface font-semibold">Midnight Network</span>
-                <p className="text-xs text-on-surface-variant">Learn about the Midnight blockchain and its privacy features</p>
-              </div>
-              <ExternalLink className="w-5 h-5 text-on-surface-variant group-hover:text-primary transition-colors" />
-            </a>
-          </div>
+          </motion.div>
         </div>
       </div>
-    </AppShell>
+      <Footer />
+    </main>
   );
 }

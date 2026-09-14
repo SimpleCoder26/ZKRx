@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useMidnight } from "@/providers/MidnightProvider";
-import { AppShell } from "@/components/layout/AppShell";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { toast } from "sonner";
 import { ScanLine, CheckCircle, XCircle, Loader2, ExternalLink, AlertTriangle } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function VerifyDrugPage() {
   const { walletConnected, verifyDrug } = useMidnight();
@@ -69,95 +71,132 @@ export default function VerifyDrugPage() {
   };
 
   return (
-    <AppShell>
-      <div className="p-4 md:p-8 max-w-3xl mx-auto">
-        <div className="mb-8">
-          <h1 className="font-headline-lg text-headline-lg text-on-surface flex items-center gap-3">
-            <ScanLine className="w-8 h-8 text-primary" />
-            Verify Drug Authenticity
-          </h1>
-          <p className="font-body-md text-body-md text-on-surface-variant mt-2">
-            Enter the batch hash from the drug&apos;s QR code. A zero-knowledge proof will verify its authenticity on the Midnight Network without revealing any private data.
-          </p>
-        </div>
-
-        <div className="glass-card rounded-2xl p-8 mb-8">
-          <label className="font-label-caps text-label-caps text-on-surface-variant block mb-2">QR Code Payload (BatchHash-ItemSecret)</label>
-          <input
-            type="text"
-            value={batchHashInput}
-            onChange={(e) => setBatchHashInput(e.target.value)}
-            placeholder="e.g. abc123def456...-789xyz..."
-            className="w-full bg-surface-container border border-outline-variant/30 rounded-lg px-4 py-3 text-on-surface font-data-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all mb-6"
-          />
-
-          <button
-            onClick={handleVerify}
-            disabled={loading || !walletConnected}
-            className="w-full bg-emerald-600 text-white hover:bg-emerald-700 px-6 py-4 rounded-xl font-label-caps font-semibold text-lg flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+    <main className="flex flex-col bg-[#F5F5F5] min-h-screen">
+      <Navbar />
+      
+      <div className="flex-grow pt-32 pb-20 px-6">
+        <div className="max-w-3xl mx-auto">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-10 text-center"
           >
-            {loading ? (
-              <><Loader2 className="w-5 h-5 animate-spin" /> Verifying on Midnight...</>
-            ) : (
-              <><ScanLine className="w-5 h-5" /> Verify Drug</>
-            )}
-          </button>
-        </div>
-
-        {/* Results */}
-        {result === 'authentic' && (
-          <div className="glass-card rounded-2xl p-8 border-2 border-emerald-300 bg-emerald-50/50">
-            <div className="flex items-center gap-3 mb-4">
-              <CheckCircle className="w-10 h-10 text-emerald-600" />
-              <div>
-                <h2 className="font-headline-md text-xl font-bold text-emerald-800">✓ Authentic Drug Verified</h2>
-                <p className="text-emerald-700 text-sm">This drug has been verified as genuine on the Midnight Network.</p>
-              </div>
-            </div>
-            {txHash && (
-              <div className="mt-4">
-                <label className="font-label-caps text-label-caps text-emerald-700 block mb-1">Proof Transaction</label>
-                <div className="font-data-mono text-xs bg-white/70 p-3 rounded-lg break-all border border-emerald-200">{txHash}</div>
-                <a
-                  href={`https://preprod.midnightexplorer.com/transactions/0x${txHash}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-emerald-700 hover:underline text-sm mt-2 font-semibold"
-                >
-                  View Proof on Midnight Explorer <ExternalLink className="w-4 h-4" />
-                </a>
-              </div>
-            )}
-          </div>
-        )}
-
-        {result === 'counterfeit' && (
-          <div className="glass-card rounded-2xl p-8 border-2 border-red-300 bg-red-50/50">
-            <div className="flex items-center gap-3 mb-4">
-              <AlertTriangle className="w-10 h-10 text-red-600" />
-              <div>
-                <h2 className="font-headline-md text-xl font-bold text-red-800">⚠ Counterfeit Warning</h2>
-                <p className="text-red-700 text-sm">{errorMsg}</p>
-              </div>
-            </div>
-            <p className="text-red-600 text-sm mt-2">
-              Do NOT consume this drug. Please report it to your local pharmaceutical authority immediately.
+            <h1 className="text-4xl md:text-5xl font-medium tracking-tight text-black mb-4">
+              Verify Drug Authenticity
+            </h1>
+            <p className="text-lg text-black/60 max-w-2xl mx-auto leading-relaxed">
+              Enter the batch hash from the drug&apos;s QR code. A zero-knowledge proof will verify its authenticity on the Midnight Network without revealing any private data.
             </p>
-          </div>
-        )}
+          </motion.div>
 
-        {result === 'error' && (
-          <div className="glass-card rounded-2xl p-8 border-2 border-orange-300 bg-orange-50/50">
-            <div className="flex items-center gap-3 mb-4">
-              <XCircle className="w-10 h-10 text-orange-600" />
-              <div>
-                <h2 className="font-headline-md text-xl font-bold text-orange-800">Verification Error</h2>
-                <p className="text-orange-700 text-sm">{errorMsg}</p>
-              </div>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-black/5 mb-8"
+          >
+            <div className="mb-6">
+              <label className="text-sm font-semibold text-black/70 mb-2 block">QR Code Payload (BatchHash-ItemSecret)</label>
+              <input
+                type="text"
+                value={batchHashInput}
+                onChange={(e) => setBatchHashInput(e.target.value)}
+                placeholder="e.g. abc123def456...-789xyz..."
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 text-black font-mono text-sm placeholder:text-black/30 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all"
+              />
             </div>
-          </div>
-        )}
+
+            <button
+              onClick={handleVerify}
+              disabled={loading || !walletConnected}
+              className="w-full bg-emerald-600 text-white hover:bg-emerald-700 px-6 py-4 rounded-2xl font-semibold text-lg flex items-center justify-center gap-3 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <><Loader2 className="w-5 h-5 animate-spin" /> Verifying on Midnight...</>
+              ) : (
+                <><ScanLine className="w-5 h-5" /> Verify Drug</>
+              )}
+            </button>
+          </motion.div>
+
+          {/* Results */}
+          {result === 'authentic' && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-emerald-50 rounded-3xl p-8 md:p-10 border border-emerald-100 shadow-sm"
+            >
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left mb-6">
+                <div className="bg-emerald-100 text-emerald-600 rounded-full p-3 shrink-0">
+                  <CheckCircle className="w-10 h-10" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-semibold text-emerald-800 tracking-tight mb-2">Authentic Drug Verified</h2>
+                  <p className="text-emerald-700/80 text-base leading-relaxed">This drug has been verified as genuine on the Midnight Network. The zero-knowledge proof confirms the manufacturer's cryptographic signature without revealing their private keys.</p>
+                </div>
+              </div>
+              
+              {txHash && (
+                <div className="bg-white/60 p-5 rounded-2xl border border-emerald-100/50 mt-6">
+                  <label className="text-xs font-semibold text-emerald-800/60 uppercase tracking-wider mb-2 block">Proof Transaction Hash</label>
+                  <div className="font-mono text-sm text-emerald-900 break-all mb-4">
+                    {txHash}
+                  </div>
+                  <a
+                    href={`https://preprod.midnightexplorer.com/transactions/0x${txHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 font-medium text-sm transition-colors"
+                  >
+                    View Proof on Midnight Explorer <ExternalLink className="w-4 h-4" />
+                  </a>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {result === 'counterfeit' && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-red-50 rounded-3xl p-8 md:p-10 border border-red-100 shadow-sm"
+            >
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left mb-4">
+                <div className="bg-red-100 text-red-600 rounded-full p-3 shrink-0">
+                  <AlertTriangle className="w-10 h-10" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-semibold text-red-800 tracking-tight mb-2">Counterfeit Warning</h2>
+                  <p className="text-red-700/90 text-base leading-relaxed">{errorMsg}</p>
+                </div>
+              </div>
+              <div className="bg-white/60 p-5 rounded-2xl border border-red-100/50 mt-6">
+                <p className="text-red-700 font-medium text-sm">
+                  Do NOT consume this drug. Please report it to your local pharmaceutical authority immediately.
+                </p>
+              </div>
+            </motion.div>
+          )}
+
+          {result === 'error' && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-orange-50 rounded-3xl p-8 border border-orange-100 shadow-sm"
+            >
+              <div className="flex items-center gap-4">
+                <div className="bg-orange-100 text-orange-600 rounded-full p-2 shrink-0">
+                  <XCircle className="w-8 h-8" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-orange-800 tracking-tight mb-1">Verification Error</h2>
+                  <p className="text-orange-700/80 text-sm">{errorMsg}</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </div>
       </div>
-    </AppShell>
+      <Footer />
+    </main>
   );
 }
