@@ -160,21 +160,19 @@ export default function BatchDetailsPage() {
 
               {/* Print Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 print:grid-cols-3 print:gap-4">
-                {(batch.itemSecrets || [batch.itemSecret || "unknown"]).map((secret: string, idx: number) => {
+                {(batch.itemSecrets || []).map((secret: string, idx: number) => {
                   
-                  // Construct Option B URL: Directs scanners to Midnight Explorer.
-                  // E.g. https://preprod.midnightexplorer.com/transactions/...
-                  const txHash = batch.txnHash || batch.hash;
-                  const qrUrl = `https://preprod.midnightexplorer.com/transactions/${txHash?.replace(/^0x/, '')}`;
+                  // Construct the ZK verification payload: [BatchHash]-[ItemSecret]
+                  // This is the only format accepted by the verify page, ensuring real ZK proof generation.
+                  const qrPayload = `${batch.hash}-${secret}`;
 
                   return (
                     <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center text-center print:border-slate-400 print:break-inside-avoid">
                       <div className="mb-4">
-                        <QRCode value={qrUrl} size={140} />
+                        <QRCode value={qrPayload} size={140} />
                       </div>
                       <p className="text-xs font-bold text-black uppercase tracking-widest mb-1">UNIT #{idx + 1}</p>
-                      <p className="text-[10px] font-mono text-black/40 uppercase">ID: {secret.substring(0, 8)}</p>
-                      <p className="text-[10px] font-semibold text-black/30 tracking-widest mt-2 uppercase">VERIFY AT ZKRx</p>
+                      <p className="text-[10px] font-semibold text-black/30 tracking-widest mt-2 uppercase">SCAN TO VERIFY</p>
                     </div>
                   );
                 })}

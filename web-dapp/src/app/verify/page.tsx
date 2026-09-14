@@ -39,31 +39,9 @@ function VerifyDrugContent() {
     try {
       let hashToVerify = batchHashInput.trim();
 
-      // If it's a midnight explorer URL, extract the tx hash
-      if (hashToVerify.includes("midnightexplorer.com/transactions/0x")) {
-        hashToVerify = hashToVerify.split("transactions/0x")[1].split("?")[0];
-      }
-
-      // We'll simulate verification logic for the UX if they just pasted a Midnight Explorer link
-      // In a real dApp, we would look up the batchHash and secret from an indexer or DB.
-      if (hashToVerify.length >= 64 && !hashToVerify.includes('-')) {
-        // It's just a tx hash. For the sake of the demo, we'll verify it automatically.
-        toast.info("Please approve the transaction in your wallet...");
-        
-        // Mock verification delay to simulate ZK proof
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        setTxHash(hashToVerify);
-        setResult('authentic');
-        toast.success("Drug verified as AUTHENTIC!");
-        setLoading(false);
-        return;
-      }
-
-      // Old payload format logic (<BatchHash>-<ItemSecret>)
       const parts = hashToVerify.split('-');
       if (parts.length !== 2 || parts[0].length !== 64 || parts[1].length !== 64) {
-        throw new Error("Invalid QR code format. Expected a Midnight Explorer link or a valid payload.");
+        throw new Error("Invalid QR code format. Expected a valid [BatchHash]-[ItemSecret] payload.");
       }
       
       const batchHex = parts[0].replace(/^0x/, '');

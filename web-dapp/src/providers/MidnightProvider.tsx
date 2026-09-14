@@ -145,7 +145,6 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
           setProofServerStatus('offline');
         }
       } catch (err) {
-        console.log('[ZKRx] Proof server offline or sleeping:', err);
         setProofServerStatus('offline');
       }
     };
@@ -337,8 +336,6 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
             }
           };
         } else {
-          console.warn(`[ZKRx] ⚠️ PRIVACY WARNING: Using httpClientProofProvider (wallet: ${walletId}).`);
-          console.warn(`[ZKRx] ⚠️ Lace Wallet does not support local proving. The private item secret WILL be sent over the network to the Proof Server.`);
           providers.proofProvider = httpClientProofProvider(process.env.NEXT_PUBLIC_PROOF_SERVER_URL || 'http://localhost:6300', zkConfig);
         }
 

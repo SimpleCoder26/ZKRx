@@ -87,13 +87,17 @@ export default function ManufacturerDashboard() {
         txnHash: result,
         minter: walletAddress,
         quantity: qty,
+        // itemSecrets are kept in React state ONLY for immediate QR printing.
+        // They are intentionally NOT persisted to localStorage to protect the private witness.
         itemSecrets: itemSecrets
       };
 
       setIssuedBatches(prev => {
         const updated = [newBatch, ...prev];
         if (walletAddress) {
-          localStorage.setItem(`zkrx_issued_${walletAddress}`, JSON.stringify(updated));
+          // Strip itemSecrets before persisting — private witness data must never be written to disk.
+          const sanitized = updated.map(({ itemSecrets, ...rest }) => rest);
+          localStorage.setItem(`zkrx_issued_${walletAddress}`, JSON.stringify(sanitized));
         }
         return updated;
       });
