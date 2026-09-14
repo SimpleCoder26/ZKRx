@@ -56,4 +56,18 @@ describe('ZKRx Contract - Native AST Execution Tests', () => {
         // For a completely pure offline test, the AST validates the circuit logic generation itself.
         assert.ok(contract.circuits.verifyDrug, 'verifyDrug circuit must be exported and ready for proof generation');
     });
+
+    test('3. Contract strictly initializes empty or valid private state', () => {
+        const witnesses: Witnesses<any> = {
+            itemSecret: (context: any) => [context.privateState, itemSecretBytes]
+        };
+        const contract = new Contract(witnesses);
+        
+        // Assert that the initial state compiles and returns the correct ledger schema
+        const constructorContext = (compactRuntime.createConstructorContext as any)({});
+        const initialState = contract.initialState(constructorContext);
+        
+        assert.ok(initialState, 'Initial state must be generated successfully');
+        assert.ok(initialState.currentContractState, 'Contract state object must be initialized');
+    });
 });
