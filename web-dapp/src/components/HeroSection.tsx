@@ -5,12 +5,11 @@ import Link from "next/link";
 const HERO_VIDEO = "/assets/hf_20260423_161253_c72b1869-400f-45ed-ac0c-52f68c2ed5bd.mp4";
 
 const BRANDS: MarqueeBrand[] = [
-	{ name: "Midnight", style: { fontFamily: "Arial, Helvetica, sans-serif", fontWeight: 900, letterSpacing: "0.08em", fontSize: "16px", textTransform: "uppercase" } },
-	{ name: "Zero-Knowledge", style: { fontFamily: "'Courier New', monospace", fontWeight: 700, letterSpacing: "0.12em", fontSize: "14px", textTransform: "uppercase" } },
-	{ name: "Next.js", style: { fontFamily: "Verdana, sans-serif", fontWeight: 700, letterSpacing: "-0.03em", fontSize: "16px" } },
-	{ name: "Typescript", style: { fontFamily: "Georgia, 'Times New Roman', serif", fontWeight: 700, letterSpacing: "-0.02em", fontSize: "15px" } },
-	{ name: "React", style: { fontFamily: "Impact, 'Arial Narrow', sans-serif", fontWeight: 400, letterSpacing: "0.04em", fontSize: "15px" } },
-	{ name: "Tailwind CSS", style: { fontFamily: "'Trebuchet MS', sans-serif", fontWeight: 600, letterSpacing: "0.01em", fontSize: "15px", fontStyle: "italic" } },
+	{ name: "MIDNIGHT", style: { fontFamily: "var(--font-jakarta), sans-serif", fontWeight: 900, letterSpacing: "0.1em", fontSize: "16px", textTransform: "uppercase" } },
+	{ name: "Lace Wallet", style: { fontFamily: "var(--font-inter), sans-serif", fontWeight: 700, letterSpacing: "-0.02em", fontSize: "17px" } },
+	{ name: "COMPACT", style: { fontFamily: "var(--font-jetbrains), monospace", fontWeight: 700, letterSpacing: "0.15em", fontSize: "15px", textTransform: "uppercase" } },
+	{ name: "TypeScript", style: { fontFamily: "var(--font-inter), sans-serif", fontWeight: 600, letterSpacing: "-0.03em", fontSize: "18px" } },
+	{ name: "Zero-Knowledge", style: { fontFamily: "var(--font-jakarta), sans-serif", fontWeight: 800, letterSpacing: "-0.01em", fontSize: "17px" } },
 ];
 
 export default function HeroSection() {
@@ -31,23 +30,23 @@ export default function HeroSection() {
 
 				<div className="relative z-10 flex flex-col items-start justify-start h-full p-12 pt-36">
 					<h1
-						className="text-black text-6xl md:text-[72px] font-semibold leading-[1.1] max-w-2xl mb-6"
-						style={{ letterSpacing: "-0.04em" }}
+						className="text-[#0A0A0A] text-6xl md:text-[76px] leading-[1.05] max-w-2xl mb-6"
+						style={{ fontFamily: 'var(--font-jakarta), system-ui, sans-serif', fontWeight: 800, letterSpacing: "-0.04em" }}
 					>
 						Secure the Source.
 						<br />
-						<span className="text-emerald-700">Verify the Journey.</span>
+						<span className="text-[#059669] drop-shadow-sm">Verify the Journey.</span>
 					</h1>
 					<p
-						className="text-black/70 text-base md:text-lg max-w-md mb-8 leading-relaxed"
-						style={{ fontFamily: "'Inter', ui-sans-serif, system-ui, sans-serif" }}
+						className="text-[#1D1D1F]/80 text-lg md:text-[19px] max-w-md mb-10 leading-[1.6]"
+						style={{ fontFamily: 'var(--font-inter), system-ui, sans-serif', fontWeight: 500 }}
 					>
-						Zero-knowledge proof verification for pharmaceutical supply chains. Prove drug authenticity without exposing private manufacturing secrets.
+						A Zero-Knowledge Pharmaceutical Verification Platform built on the Midnight Blockchain. Prove drug authenticity without exposing private manufacturing secrets.
 					</p>
 					
 					<div className="flex gap-4">
 						<Link href="/manufacturer">
-							<PillButton label="Register Batch" large />
+							<PillButton label="Launch dApp" large />
 						</Link>
 					</div>
 

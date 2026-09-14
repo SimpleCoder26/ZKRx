@@ -137,14 +137,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <nav className={`fixed left-0 top-0 h-screen w-[280px] flex flex-col bg-white z-50 p-6 border-r border-black/5 transition-transform duration-300 md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex flex-col gap-y-4 h-full">
           <div className="mb-4 pt-2 px-2">
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg group-hover:scale-105 transition-all duration-300">
-                <span className="text-white font-bold text-xl tracking-tighter">ZK</span>
-              </div>
-              <span className="text-2xl font-bold tracking-tight text-black flex items-center">
-                ZKRx<span className="text-emerald-600">.</span>
-              </span>
-            </Link>
+            <div className="pl-2">
+              <Logo />
+            </div>
           </div>
           
           <div className="flex flex-col gap-1.5 flex-grow">
@@ -194,14 +189,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Top Header */}
       <header className="sticky top-0 z-30 flex justify-between items-center w-full px-6 py-6 h-20 bg-[#F5F5F5]/80 backdrop-blur-md">
         <div className="flex items-center md:hidden shrink-0 min-w-0">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-emerald-600 rounded-md flex items-center justify-center text-white">
-              <ShieldCheck size={16} />
-            </div>
-            <span className="text-lg font-bold tracking-tight text-black">
-              ZKRx
-            </span>
-          </Link>
+          <Logo hideTextOnMobile={true} />
         </div>
 
         <div className="flex items-center gap-4 flex-1 justify-end min-w-0">
