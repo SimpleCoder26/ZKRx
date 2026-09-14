@@ -157,7 +157,7 @@ export default function ManufacturerDashboard() {
                         <Copy className="w-4 h-4 text-slate-500" />
                       </button>
                       <a 
-                        href={`https://preprod.midnightexplorer.com/transaction/${txHash?.startsWith('0x') ? txHash : '0x' + txHash}`}
+                        href={`https://preprod.midnightexplorer.com/transactions/${txHash?.replace(/^0x/, '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
@@ -304,7 +304,7 @@ export default function ManufacturerDashboard() {
                           <td className="py-5 px-4">
                             {batch.txnHash ? (
                               <a 
-                                href={`https://preprod.midnightexplorer.com/transaction/${batch.txnHash.startsWith('0x') ? batch.txnHash : '0x' + batch.txnHash}`}
+                                href={`https://preprod.midnightexplorer.com/transactions/${batch.txnHash?.replace(/^0x/, '')}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1.5 font-mono text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:underline transition-colors"

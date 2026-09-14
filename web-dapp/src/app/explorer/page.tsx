@@ -175,7 +175,7 @@ export default function ExplorerPage() {
                       <td className="py-5 px-6">
                         <div className="flex items-center gap-2 group">
                           <a 
-                            href={`https://preprod.midnightexplorer.com/transaction/${(batch.txnHash || batch.hash)?.startsWith('0x') ? (batch.txnHash || batch.hash) : '0x' + (batch.txnHash || batch.hash)}`} 
+                            href={`https://preprod.midnightexplorer.com/transactions/${(batch.txnHash || batch.hash)?.replace(/^0x/, '')}`} 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="font-mono text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:underline max-w-[120px] truncate block"

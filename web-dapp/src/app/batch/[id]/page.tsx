@@ -97,7 +97,7 @@ export default function BatchDetailsPage() {
             <motion.div 
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              className="lg:col-span-1 bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-black/5 print:break-inside-avoid print:shadow-none print:border-slate-300"
+              className="lg:col-span-1 bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-black/5 print:hidden"
             >
               <h2 className="text-xl font-semibold text-black mb-6">Batch Info</h2>
               
@@ -121,7 +121,7 @@ export default function BatchDetailsPage() {
                 <div>
                   <p className="text-xs font-semibold text-black/50 uppercase tracking-wider mb-1">On-Chain Hash</p>
                   <a 
-                    href={`https://preprod.midnightexplorer.com/transactions/0x${batch.txnHash}`} 
+                    href={`https://preprod.midnightexplorer.com/transactions/${(batch.txnHash || batch.hash)?.replace(/^0x/, '')}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="font-mono text-xs text-blue-600 hover:underline break-all block mt-1"
@@ -163,9 +163,9 @@ export default function BatchDetailsPage() {
                 {(batch.itemSecrets || [batch.itemSecret || "unknown"]).map((secret: string, idx: number) => {
                   
                   // Construct Option B URL: Directs scanners to Midnight Explorer.
-                  // E.g. https://preprod.midnightexplorer.com/transactions/0x...
+                  // E.g. https://preprod.midnightexplorer.com/transactions/...
                   const txHash = batch.txnHash || batch.hash;
-                  const qrUrl = `https://preprod.midnightexplorer.com/transactions/0x${txHash}`;
+                  const qrUrl = `https://preprod.midnightexplorer.com/transactions/${txHash?.replace(/^0x/, '')}`;
 
                   return (
                     <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center text-center print:border-slate-400 print:break-inside-avoid">
