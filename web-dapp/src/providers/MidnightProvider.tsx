@@ -652,10 +652,10 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
                           <div className="flex flex-col items-center gap-1.5 mt-2">
                             <span className="font-semibold text-black text-lg tracking-tight">Authenticating</span>
                             <span className="text-sm text-black/50">Awaiting wallet approval...</span>
-                            <div className="mt-3 px-3.5 py-2 bg-blue-50/50 border border-blue-100/50 rounded-lg text-center max-w-[280px]">
-                              <span className="text-xs text-blue-700/80 font-medium leading-relaxed">
-                                Please keep your wallet extension open for a smoother experience
-                              </span>
+                            <div className="mt-4 text-center max-w-[260px]">
+                              <p className="text-[11px] text-black/40 font-medium leading-relaxed">
+                                Keep your wallet extension open and unlocked for a smoother experience
+                              </p>
                             </div>
                           </div>
                         </motion.div>
