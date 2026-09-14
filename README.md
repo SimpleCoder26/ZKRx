@@ -22,7 +22,7 @@
 *   **🌐 Network**: Midnight Preprod Testnet
 *   **💻 GitHub Repository**: [https://github.com/SimpleCoder26/ZKRx](https://github.com/SimpleCoder26/ZKRx)
 *   **🔗 Live Demo**: [https://zkrx.vercel.app/](https://zkrx.vercel.app/)
-*   **🎬 Demo Video**: [To be added by author]
+*   **🎬 Demo Video**: [https://youtu.be/tnvLooVmSYw](https://youtu.be/tnvLooVmSYw)
 *   **📝 Product Proposal**: [View Approved Idea Document](./PROPOSAL.md)
 *   **⚙️ Smart Contract**: [`zkrx.compact`](./zk-circuit/contracts/zkrx.compact)
 *   **📡 Contract Address**: [`0x0d2181f9545b4f21f142eb81970c50887363533bd55f51e5a4dade7e096f27f4`](https://preprod.midnightexplorer.com/contracts/0d2181f9545b4f21f142eb81970c50887363533bd55f51e5a4dade7e096f27f4) *(Note: Due to known faults on the Midnight Explorer's end, you may need to access this link via a private network/VPN or Cloudflare DNS).*
@@ -93,7 +93,7 @@ To eliminate local resource constraints and cross-origin bottlenecks, ZKRx utili
 | **Circuit Called from Frontend**| ✅ **Done.** The `registerBatch` and `verifyDrug` circuits are successfully invoked in the browser. The frontend provider serializes inputs into the SDK, triggering the wallet to generate a local ZK proof. |
 | **Observable Privacy Behavior** | ✅ **Done.** We implemented **Nullifiers**. The circuit cryptographically hashes the item secret to generate a unique nullifier per drug. If a drug is verified twice, the smart contract rejects the transaction, yet the ledger *never learns* the drug's exact secret. |
 | **Live Demo Link** | [https://zkrx.vercel.app/](https://zkrx.vercel.app/) |
-| **Demo Video Link** | [To be added by author] |
+| **Demo Video Link** | [https://youtu.be/tnvLooVmSYw](https://youtu.be/tnvLooVmSYw) |
 
 ### 🥇 Level 3 Submission Requirements
 
