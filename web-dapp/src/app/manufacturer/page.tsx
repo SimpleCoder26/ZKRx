@@ -286,20 +286,36 @@ export default function ManufacturerDashboard() {
                         <th className="py-4 px-4 text-xs font-semibold text-black/50 uppercase tracking-wider">Drug Name</th>
                         <th className="py-4 px-4 text-xs font-semibold text-black/50 uppercase tracking-wider">Batch Number</th>
                         <th className="py-4 px-4 text-xs font-semibold text-black/50 uppercase tracking-wider">Qty</th>
-                        <th className="py-4 px-4 text-xs font-semibold text-black/50 uppercase tracking-wider">Batch Hash</th>
+                        <th className="py-4 px-4 text-xs font-semibold text-black/50 uppercase tracking-wider">Txn Hash</th>
                       </tr>
                     </thead>
                     <tbody>
                       {issuedBatches.map((batch, idx) => (
-                        <tr key={idx} className="border-b border-black/5 hover:bg-slate-50/50 transition-colors group cursor-pointer" onClick={() => router.push(`/batch/${batch.batch}`)}>
+                        <tr key={idx} className="border-b border-black/5 hover:bg-slate-50/50 transition-colors group">
                           <td className="py-5 px-4 text-sm text-black/70">{batch.date}</td>
                           <td className="py-5 px-4 text-base font-medium text-black">{batch.name}</td>
-                          <td className="py-5 px-4 text-sm font-mono text-blue-600 hover:underline">{batch.batch}</td>
+                          <td className="py-5 px-4">
+                            <Link href={`/batch/${batch.batch}`} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-lg font-mono text-sm font-bold transition-colors">
+                              {batch.batch}
+                              <ExternalLink className="w-3 h-3 text-blue-400 group-hover:text-blue-600" />
+                            </Link>
+                          </td>
                           <td className="py-5 px-4 text-sm text-black/70">{batch.quantity || 1}</td>
                           <td className="py-5 px-4">
-                            <div className="text-xs font-mono text-black/40 group-hover:text-black/60 transition-colors max-w-[150px] md:max-w-[200px] truncate" title={batch.hash}>
-                              {batch.hash}
-                            </div>
+                            {batch.txnHash ? (
+                              <a 
+                                href={`https://preprod.midnightexplorer.com/transaction/${batch.txnHash.startsWith('0x') ? batch.txnHash : '0x' + batch.txnHash}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 font-mono text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:underline transition-colors"
+                                title="View on Midnight Explorer"
+                              >
+                                <span className="max-w-[100px] md:max-w-[150px] truncate">{batch.txnHash}</span>
+                                <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                              </a>
+                            ) : (
+                              <span className="text-xs font-mono text-black/40">N/A</span>
+                            )}
                           </td>
                         </tr>
                       ))}
