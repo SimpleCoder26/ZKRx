@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useMidnight } from "@/providers/MidnightProvider";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { AppShell } from "@/components/layout/AppShell";
 import { toast } from "sonner";
 import { ScanLine, CheckCircle, XCircle, Loader2, ExternalLink, AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
@@ -71,10 +70,8 @@ export default function VerifyDrugPage() {
   };
 
   return (
-    <main className="flex flex-col bg-[#F5F5F5] min-h-screen">
-      <Navbar />
-      
-      <div className="flex-grow pt-32 pb-20 px-6">
+    <AppShell>
+      <div className="flex-grow pb-20 px-6">
         <div className="max-w-3xl mx-auto">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -196,7 +193,6 @@ export default function VerifyDrugPage() {
           )}
         </div>
       </div>
-      <Footer />
-    </main>
+    </AppShell>
   );
 }

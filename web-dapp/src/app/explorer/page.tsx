@@ -1,7 +1,6 @@
 "use client";
 
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { AppShell } from "@/components/layout/AppShell";
 import { Database, ExternalLink } from "lucide-react";
 import { getContractAddress } from "@/config";
 import { motion } from "framer-motion";
@@ -10,10 +9,8 @@ export default function ExplorerPage() {
   const contractAddress = getContractAddress();
 
   return (
-    <main className="flex flex-col bg-[#F5F5F5] min-h-screen">
-      <Navbar />
-      
-      <div className="flex-grow pt-32 pb-20 px-6">
+    <AppShell>
+      <div className="flex-grow pb-20 px-6">
         <div className="max-w-4xl mx-auto">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -132,7 +129,6 @@ export default function ExplorerPage() {
           </motion.div>
         </div>
       </div>
-      <Footer />
-    </main>
+    </AppShell>
   );
 }

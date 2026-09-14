@@ -1,8 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { useMidnight } from '@/providers/MidnightProvider';
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { AppShell } from '@/components/layout/AppShell';
 import { ShieldCheck, Loader2, CheckCircle, AlertCircle, Copy, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -39,10 +38,8 @@ export default function AdminPage() {
   };
 
   return (
-    <main className="flex flex-col bg-[#F5F5F5] min-h-screen">
-      <Navbar />
-      
-      <div className="flex-grow pt-32 pb-20 px-6">
+    <AppShell>
+      <div className="flex-grow pb-20 px-6">
         <div className="max-w-3xl mx-auto">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -146,7 +143,6 @@ export default function AdminPage() {
           </motion.div>
         </div>
       </div>
-      <Footer />
-    </main>
+    </AppShell>
   );
 }

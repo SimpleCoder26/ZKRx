@@ -76,32 +76,32 @@ const MidnightContext = createContext<MidnightContextType | undefined>(undefined
  */
 function discoverWallet(walletId?: string): InitialAPI | null {
   if (typeof window === 'undefined' || !window.midnight) return null;
-  
+
   const keys = Object.keys(window.midnight);
   console.log('[ZKRx] Discovered window.midnight keys:', keys);
-  
+
   if (walletId === '1am' && window.midnight['1am']) {
     return window.midnight['1am'] as InitialAPI;
   }
-  
+
   if (walletId === 'lace' && window.midnight['lace']) {
     return window.midnight['lace'] as InitialAPI;
   }
-  
+
   for (const key of keys) {
     const provider = window.midnight[key];
     // Some wallets might use 'enable' instead of 'connect' if they wrap Cardano CIP-30 loosely
     if (provider && (typeof provider.connect === 'function' || typeof (provider as any).enable === 'function')) {
       const is1AM = key === '1am' || provider.name?.toLowerCase().includes('1am');
       const isLace = key === 'lace' || provider.name?.toLowerCase().includes('lace');
-      
+
       if (walletId === 'lace' && is1AM) continue;
       if (walletId === '1am' && isLace) continue;
-      
+
       console.log(`[ZKRx] Found fallback wallet provider under key "${key}"`);
       // If the provider has enable instead of connect, shim it
       if (typeof provider.connect !== 'function' && typeof (provider as any).enable === 'function') {
-         provider.connect = (provider as any).enable;
+        provider.connect = (provider as any).enable;
       }
       return provider as InitialAPI;
     }
@@ -156,7 +156,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
     const savedWallet = localStorage.getItem('zkrx_connected_wallet');
     const savedAddress = localStorage.getItem('zkrx_wallet_address');
     const savedBalance = localStorage.getItem('zkrx_wallet_balance');
-    
+
     if (savedWallet && savedAddress) {
       // Passive hydration: do not forcefully popup the wallet on every refresh.
       // We just restore the UI state. Real connection happens just-in-time if needed.
@@ -179,7 +179,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
     }
     try {
       if (!isSilent) await new Promise(r => setTimeout(r, 1000));
-      
+
       const wallet = discoverWallet(walletId);
       if (!wallet) {
         alert(
@@ -234,15 +234,15 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
         const { httpClientProofProvider } = await import('@midnight-ntwrk/midnight-js-http-client-proof-provider');
         const { Contract } = await import('@/contracts/zkrx/index.js');
         const { CompiledContract } = await import('@midnight-ntwrk/compact-js');
-        
+
         const { setNetworkId: setMidnightNetworkId } = await import('@midnight-ntwrk/midnight-js-network-id');
         setMidnightNetworkId(connectedNetwork);
 
         const config = await api.getConfiguration();
         const zkConfig = new fetchZkConfigProvider(window.location.origin + '/managed/zkrx/', window.fetch.bind(window));
-        
+
         const shieldedAddresses = await api.getShieldedAddresses();
-        
+
         const walletProvider = {
           getCoinPublicKey: () => shieldedAddresses.shieldedCoinPublicKey,
           getEncryptionPublicKey: () => shieldedAddresses.shieldedEncryptionPublicKey,
@@ -259,11 +259,11 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
           submitTx: async (tx: any) => {
             const txBytes = tx.serialize();
             const txHex = toHex(txBytes);
-            
+
             // submitTransaction returns void per the DApp Connector API spec.
             // We must compute the transaction hash using the ledger's built-in method.
             await api!.submitTransaction(txHex);
-            
+
             // transactionHash() already returns a hex string, do not wrap in toHex()
             const hashHex = tx.transactionHash();
             console.log('[ZKRx] Computed TX Hash:', hashHex);
@@ -317,12 +317,12 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
         }
 
         const compiled = CompiledContract.make('Contract', Contract).pipe(
-          CompiledContract.withWitnesses({ 
+          CompiledContract.withWitnesses({
             itemSecret: () => [undefined, currentWitnessState.current.secretBytes]
           }),
           CompiledContract.withCompiledFileAssets('/managed/zkrx/')
         );
-        
+
         // Update both state (for UI) and refs (for synchronous access in transaction functions)
         setMidnightProviders(providers);
         midnightProvidersRef.current = providers;
@@ -371,7 +371,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
 
       setWalletConnected(true);
       console.log('[ZKRx] Wallet connected successfully!');
-      
+
       if (!isSilent) {
         setConnectionStatus('success');
         setTimeout(() => {
@@ -435,7 +435,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
     }
     const { getContractAddress } = await import('@/config');
     const latestAddress = getContractAddress();
-    
+
     if (!compiled || !latestAddress) {
       throw new Error('Midnight providers or contract address not initialized');
     }
@@ -463,7 +463,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
             const parsed = JSON.parse(callError.message.substring(jsonStart));
             if (parsed?.public?.txHash) txHash = parsed.public.txHash;
           }
-        } catch {}
+        } catch { }
       }
       if (!txHash) throw callError;
     }
@@ -520,7 +520,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
             const parsed = JSON.parse(callError.message.substring(jsonStart));
             if (parsed?.public?.txHash) txHash = parsed.public.txHash;
           }
-        } catch {}
+        } catch { }
       }
       if (!txHash) throw callError;
     }
@@ -540,7 +540,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
     console.log('[ZKRx] Deploying Smart Contract via Midnight Wallet...');
     const { createUnprovenDeployTx, submitTxAsync } = await import('@midnight-ntwrk/midnight-js-contracts');
     const { sampleSigningKey } = await import('@midnight-ntwrk/compact-runtime');
-    
+
     const deployTxData = await createUnprovenDeployTx(providers, {
       compiledContract: compiled,
       args: [],
@@ -550,7 +550,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
 
     const newContractAddress = deployTxData.public.contractAddress;
     console.log('[ZKRx] Pre-computed Contract Address:', newContractAddress);
-    
+
     try {
       await submitTxAsync(providers, {
         unprovenTx: deployTxData.private.unprovenTx,
@@ -570,37 +570,37 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <MidnightContext.Provider value={{ 
+    <MidnightContext.Provider value={{
       walletConnected, walletAddress, walletBalance, isConnecting, networkId,
-      connectWallet, disconnectWallet, registerBatch, verifyDrug, deploySmartContract 
+      connectWallet, disconnectWallet, registerBatch, verifyDrug, deploySmartContract
     }}>
       {children}
 
       {/* Wallet Selection Modal — Lace & 1A.M. only */}
       <AnimatePresence>
         {showModal && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
           >
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               className="bg-[#F5F5F5] rounded-3xl p-8 md:p-10 max-w-[420px] w-full relative shadow-2xl"
             >
-              <button 
+              <button
                 onClick={() => setShowModal(false)}
                 className="absolute top-6 right-6 text-black/40 hover:text-black w-8 h-8 flex items-center justify-center transition-colors z-50 cursor-pointer"
               >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 1L1 13M1 1L13 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 1L1 13M1 1L13 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </button>
-              
+
               <div className="relative z-10 flex flex-col mt-2">
-                <h2 
+                <h2
                   className="text-3xl font-medium text-black mb-3"
                   style={{ letterSpacing: "-0.03em" }}
                 >
@@ -609,16 +609,16 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
                 <p className="text-black/60 mb-8 text-base leading-relaxed">
                   Select your Midnight compatible wallet to securely interact with ZKRx.
                 </p>
-                
+
                 <div className="w-full flex flex-col gap-3">
                   {connectionStatus === 'connecting' || connectionStatus === 'success' ? (
-                    <motion.div 
+                    <motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       className="w-full flex flex-col items-center justify-center py-10 gap-6 rounded-2xl bg-white border border-black/5 shadow-sm"
                     >
                       {connectionStatus === 'connecting' ? (
-                        <motion.div 
+                        <motion.div
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
@@ -626,13 +626,13 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
                         >
                           <div className="relative w-16 h-16 flex items-center justify-center">
                             {/* Outer spinning dashed ring */}
-                            <motion.div 
+                            <motion.div
                               animate={{ rotate: 360 }}
                               transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                               className="absolute inset-0 rounded-full border-[2px] border-dashed border-black/20"
                             />
                             {/* Inner spinning solid ring */}
-                            <motion.div 
+                            <motion.div
                               animate={{ rotate: -360 }}
                               transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                               className="absolute inset-2 rounded-full border-[2px] border-black/10 border-t-black"
@@ -660,14 +660,14 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
                           </div>
                         </motion.div>
                       ) : (
-                        <motion.div 
+                        <motion.div
                           initial={{ scale: 0.9, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
                           transition={{ type: 'spring', damping: 20, stiffness: 300 }}
                           className="flex flex-col items-center gap-6"
                         >
                           <div className="relative w-16 h-16 flex items-center justify-center">
-                            <motion.div 
+                            <motion.div
                               initial={{ scale: 0 }}
                               animate={{ scale: 1 }}
                               transition={{ type: 'spring', damping: 15, stiffness: 400, delay: 0.1 }}
@@ -683,7 +683,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
                                 </svg>
                               </motion.div>
                             </motion.div>
-                            
+
                             {/* Success burst ring */}
                             <motion.div
                               initial={{ scale: 1, opacity: 1 }}
@@ -692,7 +692,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
                               className="absolute inset-0 rounded-full border-[3px] border-black z-0"
                             />
                           </div>
-                          
+
                           <div className="flex flex-col items-center gap-1.5">
                             <span className="font-bold text-black text-xl tracking-tight">Connected</span>
                             <span className="text-sm text-black/50">Secure session established</span>
@@ -702,7 +702,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
                     </motion.div>
                   ) : (
                     <>
-                      <motion.button 
+                      <motion.button
                         whileHover={{ y: -2 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => executeConnection('1am')}
@@ -715,14 +715,14 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
                           <div className="flex flex-col items-start">
                             <span className="font-semibold text-black text-lg leading-none mt-0.5">1A.M. Wallet</span>
                             <span className="inline-flex items-center rounded-md bg-slate-50 px-1.5 py-0.5 mt-1.5 text-[10px] font-medium text-slate-500 ring-1 ring-inset ring-slate-200/50">
-                              Browser Prover
+                              Recommended
                             </span>
                           </div>
                         </div>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-black/20 group-hover:text-black transition-colors" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-black/20 group-hover:text-black transition-colors" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
                       </motion.button>
 
-                      <motion.button 
+                      <motion.button
                         whileHover={proofServerStatus === 'online' ? { y: -2 } : {}}
                         whileTap={proofServerStatus === 'online' ? { scale: 0.98 } : {}}
                         onClick={() => {
@@ -739,7 +739,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
                           </div>
                           <div className="flex flex-col items-start">
                             <span className={`font-semibold text-lg leading-none mt-0.5 ${proofServerStatus === 'online' ? 'text-black' : 'text-slate-500'}`}>Lace Wallet</span>
-                            
+
                             {proofServerStatus === 'checking' && (
                               <div className="flex items-center gap-1.5 mt-1.5">
                                 <div className="w-2.5 h-2.5 rounded-full border-[1.5px] border-slate-400 border-t-transparent animate-spin"></div>
@@ -748,11 +748,11 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
                                 </span>
                               </div>
                             )}
-                            
+
                             {proofServerStatus === 'online' && (
                               <div className="flex items-center gap-1 mt-1.5">
                                 <span className="inline-flex items-center rounded-md bg-slate-50 px-1.5 py-0.5 text-[10px] font-medium text-slate-500 ring-1 ring-inset ring-slate-200/50">
-                                  Cloud Prover Ready
+                                  Cloud Prover:Ready
                                 </span>
                               </div>
                             )}
@@ -760,13 +760,13 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
                             {proofServerStatus === 'offline' && (
                               <div className="flex items-center gap-1 mt-1.5">
                                 <span className="inline-flex items-center rounded-md bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-500 ring-1 ring-inset ring-red-200/50">
-                                  Server Offline
+                                  Server Offline (please wait)
                                 </span>
                               </div>
                             )}
                           </div>
                         </div>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className={`transition-colors ${proofServerStatus === 'online' ? 'text-black/20 group-hover:text-black' : 'text-black/10'}`} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className={`transition-colors ${proofServerStatus === 'online' ? 'text-black/20 group-hover:text-black' : 'text-black/10'}`} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
                       </motion.button>
                     </>
                   )}
