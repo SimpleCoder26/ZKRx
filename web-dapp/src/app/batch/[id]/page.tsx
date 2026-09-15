@@ -162,9 +162,10 @@ export default function BatchDetailsPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 print:grid-cols-3 print:gap-4">
                 {(batch.itemSecrets || []).map((secret: string, idx: number) => {
                   
-                  // Construct the ZK verification payload: [BatchHash]-[ItemSecret]
-                  // This is the only format accepted by the verify page, ensuring real ZK proof generation.
-                  const qrPayload = `${batch.hash}-${secret}`;
+                  // Construct the ZK verification URL: /verify?payload=[BatchHash]-[ItemSecret]
+                  // This is standard practice for physical asset verification, allowing mobile scanning.
+                  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://zkrx.vercel.app';
+                  const qrPayload = `${origin}/verify?payload=${batch.hash}-${secret}`;
 
                   return (
                     <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col items-center justify-center text-center print:border-slate-400 print:break-inside-avoid">

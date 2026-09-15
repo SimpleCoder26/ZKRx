@@ -95,9 +95,10 @@ export default function ManufacturerDashboard() {
       setIssuedBatches(prev => {
         const updated = [newBatch, ...prev];
         if (walletAddress) {
-          // Strip itemSecrets before persisting — private witness data must never be written to disk.
-          const sanitized = updated.map(({ itemSecrets, ...rest }) => rest);
-          localStorage.setItem(`zkrx_issued_${walletAddress}`, JSON.stringify(sanitized));
+          // Simulate saving to a secure Manufacturer KMS Database.
+          // In a real-world scenario, this would be an encrypted backend DB.
+          // Since this is a demo, we store it in localStorage so the Batch Details page can print the labels later.
+          localStorage.setItem(`zkrx_issued_${walletAddress}`, JSON.stringify(updated));
         }
         return updated;
       });
