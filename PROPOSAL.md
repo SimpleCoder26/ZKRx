@@ -1,60 +1,68 @@
 <div align="center">
   <h1>ZKRx: Zero-Knowledge Pharmaceutical Verification</h1>
-  <p><em>A Midnight Builder Challenge Level 4 Idea Submission</em></p>
+  <p><em>A privacy-preserving pharmaceutical verification protocol built for the Midnight blockchain.</em></p>
 </div>
 
 ---
 
-## 1. The Problem: The $4.4 Billion Supply Chain Vulnerability
+## THE PROBLEM: The $4.4 Billion Supply-Chain Vulnerability
 
-The global pharmaceutical supply chain is plagued by a $4.4 billion counterfeit crisis, primarily driven by the industry's reliance on centralized, mutable serial-number databases. 
+The global pharmaceutical supply chain faces a $4.4 billion counterfeit crisis, driven in part by reliance on centralized, mutable serial-number databases.
 
-**The Web3 Paradox:** Transparent public ledgers (e.g., Ethereum, Solana) cannot resolve this vulnerability. Publishing plaintext serial numbers on a public ledger creates an irreversible vector for counterfeiters to clone valid identifiers. Conversely, relying on off-chain execution environments (TEEs) or federated oracles reintroduces the exact centralization and trust bottlenecks that Web3 aims to eliminate.
-
----
-
-## 2. The Solution: Cryptographic Selective Disclosure
-
-**ZKRx** is a decentralized, privacy-preserving verification protocol engineered exclusively for the Midnight blockchain. By leveraging Midnight’s native **Selective Disclosure** capabilities, ZKRx fits perfectly into the **Identity/credentials** category, implementing a trustless **Confidential Credentials** pattern. 
-
-The protocol achieves absolute verification of pharmaceutical authenticity via Zero-Knowledge succinct non-interactive arguments of knowledge (zk-SNARKs) without exposing the underlying physical payload data (the item's credential) to the consensus layer.
-
-### Protocol Mechanics:
-1. **Cryptographic Commitment:** A manufacturer commits a batch to the ledger by submitting a cryptographic hash of the batch metadata, establishing an immutable state root.
-2. **Local Proof Generation:** A consumer scans a physical QR code containing the `itemSecret`. The Midnight.js provider serializes this secret and compiles a local Zero-Knowledge Proof entirely within the client's execution environment.
-3. **State Transition Verification:** The Midnight smart contract validates the proof against the batch hash predicate. 
-4. **Deterministic Nullification:** Upon successful verification, the circuit emits a deterministically derived nullifier hash. This prevents double-spend (double-scanning) of the drug unit while keeping the `itemSecret` structurally isolated as a private witness.
+*   Public blockchains cannot safely publish plaintext pharmaceutical identifiers, as exposed credentials could potentially be cloned.
+*   Off-chain verification services and federated oracles reintroduce centralized trust and infrastructure dependencies.
+*   The challenge is to make pharmaceutical credentials verifiable without exposing the sensitive data behind them.
 
 ---
 
-## 3. The Privacy Model & Data Architecture
+## THE SOLUTION: Cryptographic Selective Disclosure
 
-To mathematically guarantee the zero-knowledge properties of the protocol, ZKRx utilizes a rigorously partitioned data model, strictly isolating public state from private witness data:
+ZKRx is a decentralized, privacy-preserving pharmaceutical verification protocol engineered for Midnight.
 
-| Cryptographic Primitive | Contract State Layer | Consensus Visibility |
-| :--- | :--- | :--- |
-| **Batch Commitment Hash** | Public Ledger (`Map<Bytes<32>, Uint<32>>`) | **Public** — Immutable, verifiable record of issuance. |
-| **Consumption Invariant** | Public Ledger | **Public** — Transparent delta tracking of batch consumption. |
-| **Nullifier Accumulator** | Public Ledger (`Set<Bytes<32>>`) | **Public** — Opaque hashes guarding against replay attacks without exposing payload identity. |
-| **Item Secret (QR Payload)** | Private Witness | **Zero-Knowledge** — Ephemeral; never leaves the client's local memory stack. |
-| **Drug-to-Nullifier Mapping** | Compiled Circuit Logic | **Computationally Hidden** — Obfuscated within the proof generation. |
+*   Uses Midnight’s privacy-preserving architecture and Selective Disclosure capabilities.
+*   Implements a Confidential Credentials model for pharmaceutical verification.
+*   Uses zero-knowledge proofs to prove that a private pharmaceutical credential is valid without revealing the underlying item secret.
+*   Allows manufacturers to establish verifiable commitments while keeping sensitive pharmaceutical data private.
 
 ---
 
-## 4. Mainnet Feasibility & Infrastructure Scalability
+## PROTOCOL MECHANICS
 
-ZKRx is engineered as a highly optimized, production-ready decentralized application, primed for Mainnet deployment.
+*   **Cryptographic Commitment:** A manufacturer commits a pharmaceutical batch to the ledger using a cryptographic hash of its metadata, creating an immutable verification anchor.
+*   **Local Proof Generation:** A consumer scans a physical QR code containing the private item credential. The credential is processed locally to generate a zero-knowledge proof without exposing the secret.
+*   **State Transition Verification:** The Midnight smart contract verifies the proof against the corresponding batch commitment.
+*   **Deterministic Nullification:** After successful verification, a deterministic nullifier is generated to prevent duplicate verification or replay while keeping the item credential private.
 
-1. **O(1) Contract Complexity**  
-   The `zkrx.compact` AST contains two highly streamlined circuits (`registerBatch` and `verifyDrug`). State transitions are O(1) in time complexity, guaranteeing deterministic and minimal gas consumption regardless of network congestion.
+---
 
-2. **Zero-Oracle Architecture**  
-   The protocol operates entirely within Midnight's native runtime environment. By eliminating dependencies on cross-chain bridges, third-party indexers, or off-chain API gateways, ZKRx drastically reduces the system's attack surface.
+## PRIVACY MODEL
 
-3. **Optimized Client-Side Proving**  
-   The compiled BZKIR bytecodes generate a remarkably lean prover key (~2.8MB). This lightweight footprint is specifically engineered to support seamless in-browser proving via native wallets (like 1A.M.), bypassing the heavy resource constraints typically associated with client-side zk-SNARK generation.
+*   **Batch Commitment Hash:** `PUBLIC` — Immutable and verifiable record of manufacturer issuance.
+*   **Verification State:** `PUBLIC` — Records the relevant verification state without exposing private credentials.
+*   **Nullifier:** `PUBLIC` — Opaque cryptographic value used for replay and duplicate-verification protection.
+*   **Item Secret / QR Payload:** `PRIVATE` — Used as a zero-knowledge witness and never exposed on-chain.
+*   **Credential-to-Nullifier Relationship:** `COMPUTATIONALLY HIDDEN` — Derived during proof generation without revealing the underlying credential.
 
-4. **Enterprise-Grade Regulatory Compliance**  
-   Hospital supply chains and regulatory bodies (FDA, EMA) require stringent HIPAA/GDPR data compliance. Because ZKRx processes sensitive supply-chain metadata locally and only broadcasts cryptographically secure proofs to the mempool, it perfectly bridges the gap between enterprise confidentiality and blockchain immutability.
+---
 
-**Conclusion:** ZKRx is not merely a proof-of-concept. It is a highly scalable, cryptographically secure architecture poised to solve a critical real-world vulnerability by pushing the limits of the Midnight network's privacy-first execution environment.
+## MAINNET FEASIBILITY AND SCALABILITY
+
+ZKRx is designed around a lightweight, privacy-first architecture suitable for scalable deployment on Midnight.
+
+*   **Constant-Size State Transitions:** Verification is designed around compact state updates rather than exposing or processing the complete private credential on-chain.
+*   **Zero-Oracle Architecture:** Core verification does not depend on external verification APIs or trusted federated oracles.
+*   **Client-Side Proving:** Sensitive credentials remain within the user’s local execution environment during proof generation.
+*   **Enterprise Privacy:** Sensitive pharmaceutical metadata remains confidential while the blockchain provides an immutable and independently verifiable verification layer.
+
+---
+
+## CONCLUSION
+
+ZKRx transforms pharmaceutical verification from a transparent identifier database into a privacy-preserving credential system.
+
+*   **Commit publicly.**
+*   **Prove privately.**
+*   **Verify cryptographically.**
+*   **Prevent replay.**
+
+By combining Midnight’s privacy architecture with cryptographic commitments, zero-knowledge proofs, selective disclosure, and deterministic nullifiers, ZKRx aims to provide a practical foundation for confidential and verifiable pharmaceutical authenticity.
