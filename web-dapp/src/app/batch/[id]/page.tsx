@@ -141,13 +141,6 @@ export default function BatchDetailsPage() {
             >
               <div className="flex items-center justify-between mb-6 print:hidden">
                 <h2 className="text-xl font-semibold text-black">Unit QR Codes</h2>
-                <button 
-                  onClick={handlePrint}
-                  className="hidden md:flex items-center gap-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 px-4 py-2 rounded-lg font-medium text-sm transition-colors"
-                >
-                  <Printer className="w-4 h-4" />
-                  Print Labels
-                </button>
               </div>
 
               <div className="mb-8 print:hidden">
@@ -160,7 +153,7 @@ export default function BatchDetailsPage() {
               </div>
 
               {/* Print Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 print:grid-cols-3 print:gap-4">
+              <div id="qr-print-grid" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 print:grid-cols-4 print:gap-4">
                 {(batch.itemSecrets || []).map((secret: string, idx: number) => {
                   
                   // Construct the ZK verification URL: /verify?payload=[BatchHash]-[ItemSecret]
@@ -202,10 +195,22 @@ export default function BatchDetailsPage() {
       {/* Global Print Styles */}
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
-          body { background: white !important; }
-          .AppShell-nav, .AppShell-header, footer { display: none !important; }
-          .md\\:ml-\\[280px\\] { margin-left: 0 !important; }
-          @page { margin: 1cm; }
+          body * {
+            visibility: hidden;
+          }
+          #qr-print-grid, #qr-print-grid * {
+            visibility: visible;
+          }
+          #qr-print-grid {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            display: grid !important;
+            grid-template-columns: repeat(4, 1fr) !important;
+            gap: 16px !important;
+          }
+          @page { margin: 0.5cm; }
         }
       `}} />
     </AppShell>

@@ -258,29 +258,46 @@ function VerifyDrugContent() {
         {/* Results */}
         {result === 'authentic' && (
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-emerald-50 rounded-3xl p-8 md:p-10 border border-emerald-100 shadow-sm"
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            className="relative overflow-hidden rounded-[2rem] p-[1px] shadow-2xl"
           >
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 text-center sm:text-left mb-6">
-              <div className="bg-emerald-100 text-emerald-600 rounded-full p-3 shrink-0">
-                <CheckCircle className="w-10 h-10" />
+            {/* Animated glowing border effect */}
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 via-teal-500 to-emerald-600 opacity-100"></div>
+            
+            <div className="relative bg-[#081510] backdrop-blur-xl rounded-[31px] p-8 md:p-14 flex flex-col items-center text-center overflow-hidden">
+              {/* Background ambient glows */}
+              <div className="absolute top-0 right-0 -mt-20 -mr-20 w-72 h-72 bg-emerald-500/20 blur-[100px] rounded-full pointer-events-none"></div>
+              <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-72 h-72 bg-teal-500/20 blur-[100px] rounded-full pointer-events-none"></div>
+              
+              <div className="relative mb-8 mt-4">
+                <div className="absolute inset-0 bg-emerald-400 blur-2xl opacity-40 rounded-full animate-pulse"></div>
+                <div className="relative bg-gradient-to-b from-emerald-400 to-emerald-600 text-white rounded-full p-5 shadow-xl ring-1 ring-emerald-300/50">
+                  <CheckCircle className="w-12 h-12 md:w-14 md:h-14" />
+                </div>
               </div>
-              <div>
-                <h2 className="text-2xl font-bold text-emerald-800 tracking-tight mb-2">Authentic Drug Verified</h2>
-                <p className="text-emerald-700/80 text-base leading-relaxed font-medium">This drug has been verified as genuine on the Midnight Network. The zero-knowledge proof confirms the manufacturer's cryptographic signature without revealing their private keys.</p>
-              </div>
+              
+              <h2 className="text-3xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-200 to-teal-100 tracking-tight mb-5">
+                Authentic Verification
+              </h2>
+              
+              <p className="text-emerald-50/70 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto mb-10 font-medium">
+                Cryptographic signature successfully verified on the Midnight Network. The zero-knowledge proof mathematically guarantees authenticity without exposing the manufacturer's private state.
+              </p>
+              
+              {txHash && (
+                <a
+                  href={`https://preprod.midnightexplorer.com/transactions/0x${txHash.replace(/^0x/, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group relative inline-flex items-center justify-center gap-3 px-8 py-4 md:px-10 md:py-5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 md:text-lg font-bold rounded-2xl transition-all duration-300 border border-emerald-500/30 hover:border-emerald-400/60 hover:shadow-[0_0_40px_-10px_rgba(16,185,129,0.4)]"
+                >
+                  <span className="relative z-10 flex items-center gap-3">
+                    Inspect Zero-Knowledge Proof <ExternalLink className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
+                  </span>
+                </a>
+              )}
             </div>
-            {txHash && (
-              <a
-                href={`https://preprod.midnightexplorer.com/transactions/0x${txHash.replace(/^0x/, '')}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-2 inline-flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-6 py-3.5 rounded-xl transition-colors shadow-md"
-              >
-                View Proof on Midnight Explorer <ExternalLink className="w-4 h-4" />
-              </a>
-            )}
           </motion.div>
         )}
 
