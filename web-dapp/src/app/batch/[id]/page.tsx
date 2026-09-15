@@ -121,7 +121,7 @@ export default function BatchDetailsPage() {
                 <div>
                   <p className="text-xs font-semibold text-black/50 uppercase tracking-wider mb-1">On-Chain Hash</p>
                   <a 
-                    href={`https://preprod.midnightexplorer.com/transactions/${(batch.txnHash || batch.hash)?.replace(/^0x/, '')}`} 
+                    href={`https://preprod.midnightexplorer.com/transactions/0x${(batch.txnHash || batch.hash)?.replace(/^0x/, '')}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="font-mono text-xs text-blue-600 hover:underline break-all block mt-1"

@@ -189,7 +189,7 @@ function VerifyDrugContent() {
             </div>
             {txHash && (
               <a
-                href={`https://preprod.midnightexplorer.com/transactions/${txHash.replace(/^0x/, '')}`}
+                href={`https://preprod.midnightexplorer.com/transactions/0x${txHash.replace(/^0x/, '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-2 inline-flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-6 py-3.5 rounded-xl transition-colors shadow-md"
