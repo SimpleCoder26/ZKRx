@@ -152,7 +152,10 @@ function VerifyDrugContent() {
           </div>
 
           <div className="mb-6">
-            <label className="text-sm font-semibold text-black mb-2 block">Paste ZKRx QR Code Payload</label>
+            <label className="text-sm font-semibold text-black mb-1 block">Paste ZKRx QR Code Payload</label>
+            <p className="text-[11px] font-medium text-black/50 mb-3 uppercase tracking-wider">
+              (For demo testing: Click "Copy Raw Payload" on the Batch Details page)
+            </p>
             <input
               type="text"
               value={batchHashInput}

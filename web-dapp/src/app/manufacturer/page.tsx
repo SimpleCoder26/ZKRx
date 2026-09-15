@@ -21,6 +21,7 @@ export default function ManufacturerDashboard() {
   const [txHash, setTxHash] = useState<string | null>(null);
   const [generatedHash, setGeneratedHash] = useState<string | null>(null);
   const [issuedBatches, setIssuedBatches] = useState<any[]>([]);
+  const [firstSecret, setFirstSecret] = useState<string | null>(null);
 
   useEffect(() => {
     if (walletAddress) {
@@ -70,6 +71,7 @@ export default function ManufacturerDashboard() {
       }
       
       setGeneratedHash(hashHex);
+      setFirstSecret(itemSecrets[0]);
       
       // Call the registerBatch circuit on Midnight
       toast.info("Please approve the transaction in your wallet...");
@@ -189,8 +191,17 @@ export default function ManufacturerDashboard() {
                   View Batch & QR Codes
                 </Link>
 
+                {firstSecret && (
+                  <Link 
+                    href={`/verify?payload=${generatedHash}-${firstSecret}`}
+                    className="bg-blue-600 text-white hover:bg-blue-700 px-8 py-4 rounded-2xl font-semibold text-lg flex items-center justify-center gap-3 transition-all shadow-md w-full max-w-sm mb-4"
+                  >
+                    Test Verify (Unit #1)
+                  </Link>
+                )}
+
                 <button
-                  onClick={() => { setTxHash(null); setGeneratedHash(null); setDrugName(""); setManufacturer(""); setBatchNumber(""); setExpiryDate(""); setQuantity("1"); }}
+                  onClick={() => { setTxHash(null); setGeneratedHash(null); setFirstSecret(null); setDrugName(""); setManufacturer(""); setBatchNumber(""); setExpiryDate(""); setQuantity("1"); }}
                   className="text-black/60 hover:text-black font-medium transition-colors"
                 >
                   Register Another Batch

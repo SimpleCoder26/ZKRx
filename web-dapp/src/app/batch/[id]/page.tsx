@@ -7,6 +7,7 @@ import { Printer, ArrowLeft, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import QRCode from "react-qr-code";
+import { toast } from "sonner";
 import { useParams, useRouter } from "next/navigation";
 
 export default function BatchDetailsPage() {
@@ -174,6 +175,12 @@ export default function BatchDetailsPage() {
                       </div>
                       <p className="text-xs font-bold text-black uppercase tracking-widest mb-1">UNIT #{idx + 1}</p>
                       <p className="text-[10px] font-semibold text-black/30 tracking-widest mt-2 uppercase">SCAN TO VERIFY</p>
+                      <button 
+                        onClick={() => { navigator.clipboard.writeText(`${batch.hash}-${secret}`); toast.success("Payload copied! Paste it in the Verify page."); }}
+                        className="mt-3 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-md hover:bg-emerald-100 transition-colors uppercase tracking-wider print:hidden"
+                      >
+                        Copy Raw Payload
+                      </button>
                     </div>
                   );
                 })}
