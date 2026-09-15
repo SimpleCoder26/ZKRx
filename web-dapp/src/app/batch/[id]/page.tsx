@@ -175,12 +175,20 @@ export default function BatchDetailsPage() {
                       </div>
                       <p className="text-xs font-bold text-black uppercase tracking-widest mb-1">UNIT #{idx + 1}</p>
                       <p className="text-[10px] font-semibold text-black/30 tracking-widest mt-2 uppercase">SCAN TO VERIFY</p>
-                      <button 
-                        onClick={() => { navigator.clipboard.writeText(`${batch.hash}-${secret}`); toast.success("Payload copied! Paste it in the Verify page."); }}
-                        className="mt-3 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-md hover:bg-emerald-100 transition-colors uppercase tracking-wider print:hidden"
-                      >
-                        Copy Raw Payload
-                      </button>
+                      <div className="flex flex-col sm:flex-row items-center gap-2 mt-3 w-full justify-center print:hidden">
+                        <button 
+                          onClick={() => { navigator.clipboard.writeText(`${batch.hash}-${secret}`); toast.success("Payload copied! Paste it in the Verify page."); }}
+                          className="w-full text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-2 rounded-md hover:bg-emerald-100 transition-colors uppercase tracking-wider text-center"
+                        >
+                          Copy Payload
+                        </button>
+                        <Link 
+                          href={`/verify?payload=${batch.hash}-${secret}`}
+                          className="w-full text-[10px] font-bold text-white bg-blue-600 px-3 py-2 rounded-md hover:bg-blue-700 transition-colors uppercase tracking-wider text-center"
+                        >
+                          Verify Now
+                        </Link>
+                      </div>
                     </div>
                   );
                 })}

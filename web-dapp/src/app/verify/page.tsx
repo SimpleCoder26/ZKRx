@@ -17,6 +17,17 @@ function VerifyDrugContent() {
   const [txHash, setTxHash] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const scannerRef = useRef<any>(null);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.stop().catch(console.error);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const payloadParam = searchParams.get("payload");
@@ -84,13 +95,65 @@ function VerifyDrugContent() {
     }
   };
 
-  const simulateCameraScan = () => {
-    toast.info("Camera API is disabled in the demo. Please paste the ZKRx QR payload directly below.");
+  const startCameraScan = async () => {
+    if (isScanning) {
+      stopCameraScan();
+      return;
+    }
+    setIsScanning(true);
+    setResult('idle');
+    try {
+      const { Html5Qrcode } = await import("html5-qrcode");
+      const html5QrCode = new Html5Qrcode("reader");
+      scannerRef.current = html5QrCode;
+      
+      await html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        (decodedText) => {
+          setBatchHashInput(decodedText);
+          toast.success("QR Code detected!");
+          stopCameraScan();
+        },
+        (errorMessage) => {
+          // Ignored: parse errors are normal during continuous scanning
+        }
+      );
+    } catch (err) {
+      toast.error("Camera access denied or failed.");
+      setIsScanning(false);
+    }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const stopCameraScan = async () => {
+    if (scannerRef.current) {
+      try {
+        await scannerRef.current.stop();
+        scannerRef.current.clear();
+      } catch(e) {}
+    }
+    setIsScanning(false);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      toast.info("Image parsing is disabled in the demo. Please paste the ZKRx QR payload directly below.");
+      const file = e.target.files[0];
+      setResult('idle');
+      toast.info("Scanning image...");
+      try {
+        const { Html5Qrcode } = await import("html5-qrcode");
+        // Use a hidden div for file scanning
+        const html5QrCode = new Html5Qrcode("reader-hidden");
+        const decodedText = await html5QrCode.scanFile(file, true);
+        
+        setBatchHashInput(decodedText);
+        toast.success("QR Code detected from image!");
+      } catch (err) {
+        toast.error("Could not find a valid QR Code in this image.");
+      }
+      
+      // Reset input so they can upload same file again if needed
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -115,15 +178,17 @@ function VerifyDrugContent() {
           animate={{ opacity: 1, scale: 1 }}
           className="bg-white rounded-3xl p-6 md:p-10 shadow-sm border border-black/5 mb-8"
         >
-          <div className="grid grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-2 gap-4 mb-4">
             <button
-              onClick={simulateCameraScan}
-              className="flex flex-col items-center justify-center gap-3 p-6 border-2 border-dashed border-slate-200 rounded-2xl hover:border-emerald-500 hover:bg-emerald-50 transition-all group"
+              onClick={startCameraScan}
+              className={`flex flex-col items-center justify-center gap-3 p-6 border-2 border-dashed rounded-2xl transition-all group ${isScanning ? 'border-red-500 bg-red-50' : 'border-slate-200 hover:border-emerald-500 hover:bg-emerald-50'}`}
             >
-              <div className="w-12 h-12 bg-slate-100 group-hover:bg-emerald-100 rounded-full flex items-center justify-center transition-colors">
-                <Camera className="w-6 h-6 text-slate-500 group-hover:text-emerald-600" />
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${isScanning ? 'bg-red-100 text-red-600' : 'bg-slate-100 group-hover:bg-emerald-100 text-slate-500 group-hover:text-emerald-600'}`}>
+                {isScanning ? <XCircle className="w-6 h-6" /> : <Camera className="w-6 h-6" />}
               </div>
-              <span className="font-semibold text-slate-700 group-hover:text-emerald-700">Scan with Camera</span>
+              <span className={`font-semibold ${isScanning ? 'text-red-700' : 'text-slate-700 group-hover:text-emerald-700'}`}>
+                {isScanning ? 'Stop Camera' : 'Scan with Camera'}
+              </span>
             </button>
 
             <button
@@ -144,7 +209,19 @@ function VerifyDrugContent() {
             </button>
           </div>
 
-          <div className="relative flex items-center justify-center mb-8">
+          <div id="reader-hidden" style={{ display: 'none' }}></div>
+          
+          {isScanning && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="mb-8 overflow-hidden rounded-2xl border-2 border-slate-200 bg-slate-50"
+            >
+              <div id="reader" className="w-full"></div>
+            </motion.div>
+          )}
+
+          <div className="relative flex items-center justify-center mb-8 mt-4">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-slate-200"></div>
             </div>
