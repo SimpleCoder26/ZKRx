@@ -1,33 +1,33 @@
 <div align="center">
-  <h1>🛡️ ZKRx: Zero-Knowledge Pharmaceutical Verification</h1>
+  <h1>ZKRx: Zero-Knowledge Pharmaceutical Verification</h1>
   <p><em>A Midnight Builder Challenge Level 3 Product Proposal</em></p>
 </div>
 
 ---
 
-## 🌍 The Problem: The $4.4 Billion Supply Chain Vulnerability
+## 1. The Problem: The $4.4 Billion Supply Chain Vulnerability
 
-The global pharmaceutical supply chain is plagued by a $4.4 billion counterfeit crisis, primarily due to the reliance on centralized, mutable serial-number databases. 
+The global pharmaceutical supply chain is plagued by a $4.4 billion counterfeit crisis, primarily driven by the industry's reliance on centralized, mutable serial-number databases. 
 
-**The Web3 Paradox:** Transparent ledgers (Ethereum, Solana) cannot resolve this. Publishing plaintext serial numbers on a public ledger creates an irreversible vector for counterfeiters to clone valid identifiers. Conversely, relying on off-chain execution environments (TEEs) or federated oracles reintroduces the exact centralization bottlenecks Web3 aims to eliminate.
+**The Web3 Paradox:** Transparent public ledgers (e.g., Ethereum, Solana) cannot resolve this vulnerability. Publishing plaintext serial numbers on a public ledger creates an irreversible vector for counterfeiters to clone valid identifiers. Conversely, relying on off-chain execution environments (TEEs) or federated oracles reintroduces the exact centralization and trust bottlenecks that Web3 aims to eliminate.
 
 ---
 
-## 💡 The Solution: Cryptographic Selective Disclosure
+## 2. The Solution: Cryptographic Selective Disclosure
 
 **ZKRx** is a decentralized, privacy-preserving verification protocol engineered exclusively for the Midnight blockchain. By leveraging Midnight’s native **Selective Disclosure** capabilities, ZKRx implements a trustless **Private Allowlist Access** pattern. 
 
-We achieve absolute verification of pharmaceutical authenticity via Zero-Knowledge succinct non-interactive arguments of knowledge (ZK-SNARKs) without exposing the underlying physical payload data to the consensus layer.
+The protocol achieves absolute verification of pharmaceutical authenticity via Zero-Knowledge succinct non-interactive arguments of knowledge (zk-SNARKs) without exposing the underlying physical payload data to the consensus layer.
 
 ### Protocol Mechanics:
 1. **Cryptographic Commitment:** A manufacturer commits a batch to the ledger by submitting a cryptographic hash of the batch metadata, establishing an immutable state root.
-2. **Local Proof Generation:** A consumer scans a physical QR code (the `itemSecret`). The Midnight.js provider serializes this secret and compiles a local Zero-Knowledge Proof entirely within the client's execution environment.
+2. **Local Proof Generation:** A consumer scans a physical QR code containing the `itemSecret`. The Midnight.js provider serializes this secret and compiles a local Zero-Knowledge Proof entirely within the client's execution environment.
 3. **State Transition Verification:** The Midnight smart contract validates the proof against the batch hash predicate. 
 4. **Deterministic Nullification:** Upon successful verification, the circuit emits a deterministically derived nullifier hash. This prevents double-spend (double-scanning) of the drug unit while keeping the `itemSecret` structurally isolated as a private witness.
 
 ---
 
-## 🔒 The Privacy Model & Data Architecture
+## 3. The Privacy Model & Data Architecture
 
 To mathematically guarantee the zero-knowledge properties of the protocol, ZKRx utilizes a rigorously partitioned data model, strictly isolating public state from private witness data:
 
@@ -41,9 +41,9 @@ To mathematically guarantee the zero-knowledge properties of the protocol, ZKRx 
 
 ---
 
-## 🚀 Mainnet Feasibility & Infrastructure Scalability
+## 4. Mainnet Feasibility & Infrastructure Scalability
 
-ZKRx is engineered as a highly optimized, production-ready DApp, primed for Mainnet deployment by Level 6.
+ZKRx is engineered as a highly optimized, production-ready decentralized application, primed for Mainnet deployment.
 
 1. **O(1) Contract Complexity**  
    The `zkrx.compact` AST contains two highly streamlined circuits (`registerBatch` and `verifyDrug`). State transitions are O(1) in time complexity, guaranteeing deterministic and minimal gas consumption regardless of network congestion.
@@ -52,7 +52,7 @@ ZKRx is engineered as a highly optimized, production-ready DApp, primed for Main
    The protocol operates entirely within Midnight's native runtime environment. By eliminating dependencies on cross-chain bridges, third-party indexers, or off-chain API gateways, ZKRx drastically reduces the system's attack surface.
 
 3. **Optimized Client-Side Proving**  
-   The compiled BZKIR bytecodes generate a remarkably lean prover key (~2.8MB). This lightweight footprint is specifically engineered to support seamless in-browser proving via native wallets (like 1A.M.), bypassing the heavy resource constraints typically associated with client-side ZK-SNARK generation.
+   The compiled BZKIR bytecodes generate a remarkably lean prover key (~2.8MB). This lightweight footprint is specifically engineered to support seamless in-browser proving via native wallets (like 1A.M.), bypassing the heavy resource constraints typically associated with client-side zk-SNARK generation.
 
 4. **Enterprise-Grade Regulatory Compliance**  
    Hospital supply chains and regulatory bodies (FDA, EMA) require stringent HIPAA/GDPR data compliance. Because ZKRx processes sensitive supply-chain metadata locally and only broadcasts cryptographically secure proofs to the mempool, it perfectly bridges the gap between enterprise confidentiality and blockchain immutability.
