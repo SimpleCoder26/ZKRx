@@ -1,6 +1,6 @@
 <div align="center">
   <h1>ZKRx: Zero-Knowledge Pharmaceutical Verification</h1>
-  <p><em>A Midnight Builder Challenge Level 3 Product Proposal</em></p>
+  <p><em>A Midnight Builder Challenge Level 4 Idea Submission</em></p>
 </div>
 
 ---

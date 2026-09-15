@@ -83,7 +83,7 @@ Below is the definitive matrix mapping the Midnight Builder Challenge requiremen
 | **Functional dApp Integration** | ✅ **Done.** | Full stack integration using `@midnight-ntwrk/midnight-js-protocol`. |
 | **Minimum 3 Tests Passing** | ✅ **Done.** | See [`zkrx.test.ts`](./zk-circuit/tests/zkrx.test.ts) and visual proof in [`3+test.png`](./web-dapp/img/3+test.png). |
 | **CI/CD Pipeline Running** | ✅ **Done.** | GitHub Actions configured in [`ci.yml`](./.github/workflows/ci.yml). Includes isolated compiler setup. |
-| **Approved Idea Submitted** | ✅ **Done.** | Built explicitly for the **Private Allowlist Access** category ([`PROPOSAL.md`](./PROPOSAL.md)). |
+| **Level 4 Idea Submission** | ✅ **Done.** | Built explicitly for the **Identity/credentials** category ([`PROPOSAL.md`](./PROPOSAL.md)). |
 | **Test Output Screenshot** | ✅ **Done.** | Hosted at [`3+test.png`](./web-dapp/img/3+test.png). |
 | **CI/CD Badge & Workflow** | ✅ **Done.** | Badge at top of README. Screenshot at [`ci-cd-pipeline.png`](./web-dapp/img/ci-cd-pipeline.png). |
 | **Privacy Model "Observer"** | ✅ **Done.** | Deep technical breakdown in the **Privacy Model** section below. |
