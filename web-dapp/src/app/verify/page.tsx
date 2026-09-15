@@ -81,22 +81,12 @@ function VerifyDrugContent() {
   };
 
   const simulateCameraScan = () => {
-    let dummyHash = "f987f1c8d265857a93a6f2935c16a94473bb62aa5829ef0b6c37fb655c963c0a";
-    try {
-      const stored = localStorage.getItem(`zkrx_issued_${walletAddress}`);
-      if (stored) {
-         const batches = JSON.parse(stored);
-         if (batches.length > 0) dummyHash = batches[0].txnHash || batches[0].hash || dummyHash;
-      }
-    } catch(e) {}
-    setBatchHashInput(`https://preprod.midnightexplorer.com/transactions/${dummyHash.replace(/^0x/, '')}`);
-    toast.success("Camera simulated. QR code scanned!");
+    toast.info("Camera API is disabled in the demo. Please paste the ZKRx QR payload directly below.");
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      simulateCameraScan();
-      toast.success("QR Code uploaded and parsed successfully.");
+      toast.info("Image parsing is disabled in the demo. Please paste the ZKRx QR payload directly below.");
     }
   };
 
@@ -112,7 +102,7 @@ function VerifyDrugContent() {
             Verify Drug Authenticity
           </h1>
           <p className="text-base text-black/60 max-w-2xl mx-auto leading-relaxed">
-            Upload a QR code or paste the Midnight Explorer link to verify its authenticity on the Midnight Network without revealing any private data.
+            Scan a drug's QR code or paste its cryptographic payload to verify its authenticity on the Midnight Network without revealing any private data.
           </p>
         </motion.div>
 
@@ -158,12 +148,12 @@ function VerifyDrugContent() {
           </div>
 
           <div className="mb-6">
-            <label className="text-sm font-semibold text-black mb-2 block">Paste QR Code Link or Txn Hash</label>
+            <label className="text-sm font-semibold text-black mb-2 block">Paste ZKRx QR Code Payload</label>
             <input
               type="text"
               value={batchHashInput}
               onChange={(e) => setBatchHashInput(e.target.value)}
-              placeholder="https://preprod.midnightexplorer.com/transactions/0x..."
+              placeholder="e.g. [BatchHash]-[ItemSecret]"
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 text-black font-mono text-sm placeholder:text-black/30 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all"
             />
           </div>

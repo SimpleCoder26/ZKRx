@@ -20,7 +20,8 @@ jobs:
       - name: Install Monorepo Dependencies
         run: npm install
 
-
+      - name: Compile Compact Contract
+        run: npm run compile
 
       - name: Run ZK Circuit Tests
         run: npm run test --workspace=zk-circuit

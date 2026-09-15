@@ -35,26 +35,24 @@ describe('ZKRx Contract - Native AST Execution Tests', () => {
         }, 'registerBatch should succeed on the compiled contract AST');
     });
 
-    test('2. Contract processes valid verifyDrug proof successfully', () => {
+    test('2. Contract correctly rejects verifyDrug proof when batch is unregistered', () => {
         const witnesses: Witnesses<any> = {
             itemSecret: (context: any) => [context.privateState, itemSecretBytes]
         };
         const contract = new Contract(witnesses);
 
-        // We first need a state where the batch is registered
         const constructorContext = (compactRuntime.createConstructorContext as any)({});
         const initialState = contract.initialState(constructorContext).currentContractState;
         
         const contractAddress = compactRuntime.sampleContractAddress();
         const coinPublicKey = compactRuntime.sampleUserAddress(); 
         
-        const context1 = compactRuntime.createCircuitContext(contractAddress, coinPublicKey, initialState, {});
+        const circuitContext = compactRuntime.createCircuitContext(contractAddress, coinPublicKey, initialState, {});
         
-        // Simulating the state transition AST execution without a full node:
-        // verifyDrug inherently relies on the ledger having the batchHash.
-        // We will assert that the contract successfully builds the partial proof data for the verify logic.
-        // For a completely pure offline test, the AST validates the circuit logic generation itself.
-        assert.ok(contract.circuits.verifyDrug, 'verifyDrug circuit must be exported and ready for proof generation');
+        // 1. Try to verify a drug on an unregistered batch
+        assert.throws(() => {
+            contract.circuits.verifyDrug(circuitContext, batchHash);
+        }, /failed assert: Invalid or unregistered batch/, 'verifyDrug should reject an unregistered batch');
     });
 
     test('3. Contract strictly initializes empty or valid private state', () => {
