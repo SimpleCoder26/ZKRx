@@ -20,161 +20,135 @@
 ## 🔗 SUBMISSION DETAILS & QUICK LINKS
 
 *   **🌐 Network**: Midnight Preprod Testnet
-*   **💻 GitHub Repository**: [https://github.com/SimpleCoder26/ZKRx](https://github.com/SimpleCoder26/ZKRx)
-*   **🔗 Live Demo**: [https://zkrx.vercel.app/](https://zkrx.vercel.app/)
-*   **🎬 Demo Video**: [https://youtu.be/tnvLooVmSYw](https://youtu.be/tnvLooVmSYw)
+*   **💻 GitHub Repository**: [SimpleCoder26/ZKRx](https://github.com/SimpleCoder26/ZKRx)
+*   **🔗 Live Demo**: [zkrx.vercel.app](https://zkrx.vercel.app/)
+*   **🎬 Demo Video**: [youtu.be/tnvLooVmSYw](https://youtu.be/tnvLooVmSYw)
 *   **📝 Product Proposal**: [View Approved Idea Document](./PROPOSAL.md)
-*   **⚙️ Smart Contract**: [`zkrx.compact`](./zk-circuit/contracts/zkrx.compact)
-*   **📡 Contract Address**: [`0x0d2181f9545b4f21f142eb81970c50887363533bd55f51e5a4dade7e096f27f4`](https://preprod.midnightexplorer.com/contracts/0d2181f9545b4f21f142eb81970c50887363533bd55f51e5a4dade7e096f27f4) *(Note: Due to known faults on the Midnight Explorer's end, you may need to access this link via a private network/VPN or Cloudflare DNS).*
+*   **⚙️ Smart Contract Source**: [`zkrx.compact`](./zk-circuit/contracts/zkrx.compact)
+*   **📡 Contract Explorer**: [`0x0d2181f9545b4f21f142eb81970c50887363533bd55f51e5a4dade7e096f27f4`](https://preprod.midnightexplorer.com/contracts/0d2181f9545b4f21f142eb81970c50887363533bd55f51e5a4dade7e096f27f4) *(Note: Due to known RPC routing anomalies on the Midnight Explorer, you may need to access this link via a private network/VPN or Cloudflare DNS).*
 
 ---
 
 ## 👁️ THE VISION: PROBLEM & SOLUTION
 
-### 🚨 The Problem: The Counterfeit Drug Crisis
-The pharmaceutical supply chain is plagued by counterfeit drugs, costing billions of dollars and endangering millions of lives. Traditional verification systems rely on centralized databases where manufacturers upload serial numbers. These databases are highly vulnerable to hacks, leaks, and insider threats. If a centralized database is breached, counterfeiters can steal legitimate serial numbers and print them on fake drugs, entirely defeating the system.
+### 🚨 The Problem: The Counterfeit Drug Crisis & Centralized Vulnerability
+The global pharmaceutical supply chain loses billions annually to counterfeit drugs, introducing fatal risks to patients. Current tracing solutions rely heavily on centralized, permissioned databases where manufacturers upload proprietary serial numbers. These architectures inherently possess single points of failure. When a database is breached, malicious actors exfiltrate valid serial numbers, print them on counterfeit packaging, and successfully bypass network validation, rendering the entire tracking system mathematically compromised.
 
-### 💊 The Solution: ZKRx & Zero-Knowledge Cryptography
-**ZKRx** fundamentally changes pharmaceutical tracking by mathematically guaranteeing product authenticity without relying on a centralized point of failure. 
+### 💊 The Solution: ZKRx Cryptographic Determinism
+**ZKRx** entirely eliminates the need for centralized serial number repositories by leveraging the Midnight blockchain's **Selective Disclosure** architecture and zk-SNARKs (Zero-Knowledge Succinct Non-Interactive Arguments of Knowledge).
 
-Built natively on the Midnight blockchain, ZKRx leverages a powerful **Selective Disclosure** architecture. When a manufacturer registers a drug batch, they don't upload a vulnerable database of serial numbers. Instead, they register a cryptographic hash on-chain.
+Instead of exposing vulnerable databases, manufacturers generate an off-chain combinatorial hash of the batch ID and a cryptographic private witness (`item_secret`). They deploy only the hashed commitment to the public ledger. 
 
-When a patient or pharmacist scans the drug's QR code, their Lace/1A.M. wallet computes a Zero-Knowledge Proof (ZKP) locally on their device. 
-
-This local proof cryptographically guarantees to the `zkrx.compact` smart contract that:
-1. The drug belongs to a legitimately registered batch.
-2. The drug has the correct private item secret.
-3. The drug has not been scanned and consumed before (enforced via a mathematically unique **Nullifier**).
+When a patient scans a drug's QR code, the ZKRx Next.js application bridges to their 1A.M. browser extension to execute a local proving circuit. The wallet computes a Zero-Knowledge Proof guaranteeing three strict invariants:
+1. **Membership**: The cryptographic commitment resolves to a node in the on-chain `registered_batches` state mapping.
+2. **Integrity**: The prover holds knowledge of the exact private `item_secret` matching the commitment.
+3. **Uniqueness**: A deterministic collision-resistant **Nullifier** is derived from the `item_secret`. If this nullifier exists in the network's `consumed_nullifiers` set, the smart contract's state transition function rejects the transaction, mathematically preventing replay attacks and double-spending.
 
 **Hackathon Category Alignment: Private Allowlist Access**
-The ZKRx project solves the pharmaceutical tracking problem by mathematically proving that a specific item (the drug) belongs to an authorized manufacturer's allowlist (the registered batch), without ever revealing the underlying item secret to the network.
-
-The network verifies the proof and updates the public ledger, but remains completely blind to the actual secret item code. By utilizing Midnight's distinct separation of **Public State** and **Private Witness**, ZKRx allows manufacturers to prove authenticity without ever exposing their proprietary supply chain data.
+ZKRx is a textbook implementation of *Private Allowlist Access*. It proves that an item (the drug) is a valid member of an authorized allowlist (the manufacturer's registered batch) without ever disclosing the item's underlying identifier to the consensus network.
 
 ---
 
+## 🏆 MIDNIGHT BUILDER CHALLENGE: CHECKLIST & PROOFS
 
-
----
-
-## 🏆 MIDNIGHT BUILDER CHALLENGE SUBMISSION CHECKLIST
+Below is the definitive matrix mapping the Midnight Builder Challenge requirements to our precise implementation vectors.
 
 ### 🥉 Level 1 Submission Requirements
 
-| Requirement | Technical Status & Implementation Proof |
-| :--- | :--- |
-| **Toolchain & Compile** | ✅ **Done.** Installed `@midnight-ntwrk/compact-compiler`. The `zkrx.compact` circuit successfully compiles into ZK parameters via our build pipeline. |
-| **Passing Test Suite** | ✅ **Done.** Complete backend test suite validating contract logic. Implemented rigorous assertions testing ledger state transitions and nullifier blocking. |
-| **Managed Directory** | ✅ **Done.** Successfully generated `managed/zkrx/` directory containing the BZKIR bytecodes, prover keys (`.pk`), and verifier keys (`.vk`). |
-| **Contract Deployed** | ✅ **Done.** Successfully deployed to Preprod with a verified visible contract address (`0x0d2181...`). Proved via the Explorer screenshot below. |
-| **Privacy Explanation** | ✅ **Done.** Comprehensive breakdown of the Privacy Model (Public State vs. Private Witness) is documented below. |
-| **Product Idea** | ✅ **Done.** Fully outlined in the "Vision" section above. |
-| **Meaningful Commits** | ✅ **Done.** Professional commit history spanning feature development. |
-| **Required Screenshots** | ✅ **Done.** Provided in Deliverables section below. |
+| Requirement | Technical Status | Implementation Proof |
+| :--- | :--- | :--- |
+| **Toolchain & Compile** | ✅ **Done.** | Verified via [`compile-out-backend.png`](./web-dapp/img/compile-out-backend.png) showing successful `compact compile` generating BZKIR bytes. |
+| **Passing Test Suite** | ✅ **Done.** | Verified via [`3+test.png`](./web-dapp/img/3+test.png) proving deep circuit logic assertions. |
+| **Managed Directory** | ✅ **Done.** | See [`zk-circuit/contracts/managed/`](./zk-circuit/contracts/managed/) containing `.pk` and `.vk` keys. |
+| **Contract Deployed** | ✅ **Done.** | Verified via [`contracts-deployed.png`](./web-dapp/img/contracts-deployed.png) on Preprod explorer. |
+| **Privacy Explanation** | ✅ **Done.** | Explained mathematically in the **Privacy Model** section below. |
+| **Product Idea** | ✅ **Done.** | Documented in the **Vision: Problem & Solution** section above. |
+| **Meaningful Commits** | ✅ **Done.** | Verified via >5 commits in the [GitHub Commit History](https://github.com/SimpleCoder26/ZKRx/commits/main). |
 
 ### 🥈 Level 2 Submission Requirements
 
-| Requirement | Technical Status & Implementation Proof |
-| :--- | :--- |
-| **Wallet Connect/Disconnect** | ✅ **Done.** Implemented robust wallet connection logic in the `MidnightProvider.tsx` context using the DApp Connector API for both 1A.M. and Lace. |
-| **Circuit Called from Frontend**| ✅ **Done.** The `registerBatch` and `verifyDrug` circuits are successfully invoked in the browser. The frontend provider serializes inputs into the SDK, triggering the wallet to generate a local ZK proof. |
-| **Observable Privacy Behavior** | ✅ **Done.** We implemented **Nullifiers**. The circuit cryptographically hashes the item secret to generate a unique nullifier per drug. If a drug is verified twice, the smart contract rejects the transaction, yet the ledger *never learns* the drug's exact secret. |
-| **Live Demo Link** | [https://zkrx.vercel.app/](https://zkrx.vercel.app/) |
-| **Demo Video Link** | [https://youtu.be/tnvLooVmSYw](https://youtu.be/tnvLooVmSYw) |
+| Requirement | Technical Status | Implementation Proof |
+| :--- | :--- | :--- |
+| **Wallet Connect/Disconnect** | ✅ **Done.** | Integrated via DApp Connector in [`MidnightProvider.tsx`](./web-dapp/src/providers/MidnightProvider.tsx#L55). |
+| **Circuit Called from Frontend**| ✅ **Done.** | `verifyDrug` circuit executed via Wallet RPC in [`app/verify/page.tsx`](./web-dapp/src/app/verify/page.tsx). |
+| **Observable Privacy Behavior** | ✅ **Done.** | **Nullifiers** implemented in [`zkrx.compact`](./zk-circuit/contracts/zkrx.compact). Double-scans fail without leaking the drug secret. |
+| **Preprod Deployment Verification**| ✅ **Done.** | Address mapped at `0x0d2181f9545b4f21f142eb81970c50887363533bd55f51e5a4dade7e096f27f4`. |
+| **Demo Video Link** | ✅ **Done.** | Hosted at [https://youtu.be/tnvLooVmSYw](https://youtu.be/tnvLooVmSYw). |
+| **Live Demo Link** | ✅ **Done.** | Hosted at [https://zkrx.vercel.app/](https://zkrx.vercel.app/). |
 
 ### 🥇 Level 3 Submission Requirements
 
-| Requirement | Technical Status & Implementation Proof |
-| :--- | :--- |
-| **Functional dApp Integration** | ✅ **Done.** Fully integrated the Midnight JS SDK, allowing manufacturers to autonomously deploy contracts and register batches natively on the Preprod network from their browser. |
-| **Minimum 3 Tests Passing** | ✅ **Done.** All invariants passing in our test suite, validating all smart contract edge cases. |
-| **CI/CD Pipeline Running** | ✅ **Done.** Configured `.github/workflows/ci.yml` to automatically run tests and builds. |
-| **Approved Idea Submitted** | ✅ **Done.** The project strictly aligns with the "Private Allowlist Access" category. |
-| **Test Output Screenshot** | ✅ **Done.** See deliverables section. |
-| **CI/CD Badge** | ✅ **Done.** Displayed at the top of this README. |
-| **Privacy Model "Observer"** | ✅ **Done.** Explicitly detailed in the Privacy Model section below exactly what a passive observer can and cannot learn from the ledger. |
+| Requirement | Technical Status | Implementation Proof |
+| :--- | :--- | :--- |
+| **Functional dApp Integration** | ✅ **Done.** | Full stack integration using `@midnight-ntwrk/midnight-js-protocol`. |
+| **Minimum 3 Tests Passing** | ✅ **Done.** | See [`zkrx.test.ts`](./zk-circuit/tests/zkrx.test.ts) and visual proof in [`3+test.png`](./web-dapp/img/3+test.png). |
+| **CI/CD Pipeline Running** | ✅ **Done.** | GitHub Actions configured in [`ci.yml`](./.github/workflows/ci.yml). Includes isolated compiler setup. |
+| **Approved Idea Submitted** | ✅ **Done.** | Built explicitly for the **Private Allowlist Access** category ([`PROPOSAL.md`](./PROPOSAL.md)). |
+| **Test Output Screenshot** | ✅ **Done.** | Hosted at [`3+test.png`](./web-dapp/img/3+test.png). |
+| **CI/CD Badge & Workflow** | ✅ **Done.** | Badge at top of README. Screenshot at [`ci-cd-pipeline.png`](./web-dapp/img/ci-cd-pipeline.png). |
+| **Privacy Model "Observer"** | ✅ **Done.** | Deep technical breakdown in the **Privacy Model** section below. |
 
 ---
 
-## 🧾 CHECKPOINT DELIVERABLES: DEPLOYMENT PROOFS
+## 🧾 CHECKPOINT DELIVERABLES: VISUAL PROOFS
 
-### 1. Zero-Knowledge Circuit Compilation (Backend)
-*Terminal output verifying the successful compilation of the Midnight Compact ZK circuits (`zkrx.compact`) into BZKIR and ZKIR formats, generating the necessary proving and verification keys for local execution.*
-<details open>
-<summary><b>View Circuit Compile Output</b></summary>
+<details>
+<summary><b>1. Zero-Knowledge Circuit Compilation (Backend)</b></summary>
 <br>
-
-<!-- Insert Screenshot Here -->
+<i>Terminal output verifying the successful compilation of the Midnight Compact ZK circuits (`zkrx.compact`) into BZKIR and ZKIR formats, generating the necessary proving and verification keys for local execution.</i>
 <img src="./web-dapp/img/compile-out-backend.png" width="800" alt="Backend Compile Output">
 </details>
 
-### 2. DApp Production Build (Frontend)
-*Next.js 16 production build output demonstrating the clean compilation of the frontend interface, static route generation, and WebAssembly integration logic via the Midnight.js SDK.*
-<details open>
-<summary><b>View Frontend Build Output</b></summary>
+<details>
+<summary><b>2. DApp Production Build (Frontend)</b></summary>
 <br>
-
-<!-- Insert Screenshot Here -->
+<i>Next.js 16 production build output demonstrating the clean compilation of the frontend interface, static route generation, and WebAssembly integration logic via the Midnight.js SDK.</i>
 <img src="./web-dapp/img/compile-out-frontend.png" width="800" alt="Frontend Build Output">
 </details>
 
-### 3. Verified Preprod Network Deployment
-*Official Midnight Explorer verification proving the smart contract is fully deployed and active on the Preprod blockchain, confirming its state is tracked by network consensus.*
-<details open>
-<summary><b>View Deployment Success</b></summary>
+<details>
+<summary><b>3. Verified Preprod Network Deployment</b></summary>
 <br>
-
-<!-- Insert Screenshot Here -->
+<i>Official Midnight Explorer verification proving the smart contract is fully deployed and active on the Preprod blockchain, confirming its state is tracked by network consensus.</i>
 <img src="./web-dapp/img/contracts-deployed.png" width="800" alt="Deployed Contract">
 </details>
 
-### 4. Verified ZK-Proof Submission on Preprod
-*Official Midnight Explorer verification proving the successful submission of a Zero-Knowledge Proof to the Preprod network, executing the `verifyDrug` state transition securely.*
-*Transaction Hash:* [0x88a11a0e7333fb9cd69e58d67cc1586688cccaff2651b7dd37bb3f682ccb2cf8](https://preprod.midnightexplorer.com/transactions/0x88a11a0e7333fb9cd69e58d67cc1586688cccaff2651b7dd37bb3f682ccb2cf8)
-<details open>
-<summary><b>View Successful Transaction</b></summary>
+<details>
+<summary><b>4. Verified ZK-Proof Submission on Preprod</b></summary>
 <br>
-
-<!-- Insert Screenshot Here -->
+<i>Official Midnight Explorer verification proving the successful submission of a Zero-Knowledge Proof to the Preprod network, executing the `verifyDrug` state transition securely.</i>
 <img src="./web-dapp/img/successfull-txn.png" width="800" alt="Successful Transaction">
 </details>
 
-### 5. Passing Test Suite (Level 3)
-*Terminal output proving 3+ successful passing tests. Crucially, the tests rigorously validate circuit logic by ensuring `verifyDrug` mathematically rejects attempts on unregistered batches.*
-<details open>
-<summary><b>View Test Output</b></summary>
+<details>
+<summary><b>5. Passing Test Suite (Level 3)</b></summary>
 <br>
-
-<!-- Insert Screenshot Here -->
+<i>Terminal output proving 3+ successful passing tests. Crucially, the tests rigorously validate circuit logic by ensuring `verifyDrug` mathematically rejects attempts on unregistered batches.</i>
 <img src="./web-dapp/img/3+test.png" width="800" alt="Passing Tests">
 </details>
 
-### 6. Unified CI/CD Pipeline (Level 3)
-*GitHub Actions dashboard verifying the automated pipeline. As required for Level 3 compliance, this includes a dedicated `Compile Compact Contract` step executed successfully before running tests.*
-<details open>
-<summary><b>View CI/CD Pipeline</b></summary>
+<details>
+<summary><b>6. Unified CI/CD Pipeline (Level 3)</b></summary>
 <br>
-
-<!-- Insert Screenshot Here -->
+<i>GitHub Actions dashboard verifying the automated pipeline. As required for Level 3 compliance, this includes a dedicated `Compile Compact Contract` step executed successfully before running tests.</i>
 <img src="./web-dapp/img/ci-cd-pipeline.png" width="800" alt="CI/CD Pipeline">
 </details>
 
-
 ---
 
-## 🕵️‍♂️ PRIVACY MODEL: WHAT AN OBSERVER CAN AND CANNOT LEARN
+## 🕵️‍♂️ PRIVACY MODEL: PUBLIC STATE AND PRIVATE WITNESS
 
-ZKRx strictly adheres to Midnight's Selective Disclosure capabilities. Here is exactly what is exposed and what is shielded when a transaction is broadcasted to the network:
+ZKRx operates strictly within Midnight's Selective Disclosure framework. The isolation between public consensus and private execution is defined below.
 
-### 👁️ PUBLIC STATE (What an Observer CAN Learn)
-- **Batch Exists:** An observer can see that a new pharmaceutical batch was registered on-chain and can view its unique Batch Hash.
-- **Verification Volume:** An observer can read the `registered_batches: Map<Bytes<32>, Uint<32>>` ledger to see *how many* times drugs from a specific batch have been verified.
-- **Nullifier Set:** An observer can see a list of random 32-byte hashes added to the `consumed_nullifiers` set, indicating that *some drug* has been consumed.
+### 👁️ PUBLIC STATE (What a Network Observer CAN Learn)
+1. **Contract Initialization:** Observers can identify when the manufacturer initialized the contract and view the deployer's address.
+2. **Allowlist Set Generation (`registered_batches`):** Observers can view the public state mapping `Map<Bytes<32>, Uint<32>>`. They know *a* batch was registered, its deterministic hash, and an integer tracking how many items from that batch have been successfully verified.
+3. **Nullifier Emissions (`consumed_nullifiers`):** Observers can view an append-only `Set<Bytes<32>>`. When a drug is consumed, they see a random 32-byte hash added to this set, proving *some* drug was consumed.
 
-### 🥷 PRIVATE WITNESS (What an Observer CANNOT Learn)
-- **The Item Secret:** The observer **cannot** see the private item secret embedded in the drug's QR code. This secret acts as a persistent private witness to generate the ZK nullifier. It is never published on-chain or shared with the network.
-- **The Specific Drug ID:** The observer **cannot** link a nullifier to a specific drug unit within a batch.
-- **Double-Scanning Attempts:** The observer **cannot** know *which* drug attempted to double-verify. They only see that an anonymous transaction was mathematically rejected by the smart contract due to a zero-knowledge nullifier collision.
+### 🥷 PRIVATE WITNESS (What a Network Observer CANNOT Learn)
+1. **The Item Secret:** The 32-byte cryptographic payload embedded in the drug's physical QR code is strictly a **Private Witness**. It is loaded into the 1A.M. wallet's private execution environment (`privateState`) and is *never* published to the ledger.
+2. **The Specific Drug Identity:** Because the Nullifier is derived via a one-way hashing algorithm `hash(item_secret)`, the observer **cannot reverse-engineer** the Nullifier to determine which specific drug unit was scanned. 
+3. **Double-Spend Execution Failures:** If a counterfeiter attempts to submit a proof for an already consumed drug, the smart contract assert fails. The observer sees a rejected transaction, but **cannot deduce** which specific drug or batch was being targeted for the replay attack.
 
 ---
 
@@ -182,27 +156,30 @@ ZKRx strictly adheres to Midnight's Selective Disclosure capabilities. Here is e
 
 ```mermaid
 sequenceDiagram
-    participant M as Manufacturer
-    participant N as Midnight Preprod
-    participant P as Patient
+    participant M as Manufacturer (Admin)
+    participant N as Midnight Preprod Ledger
+    participant P as Patient (1A.M. Wallet)
     
-    M->>N: "Deploy zkrx.compact (Admin)"
-    M->>N: "Submit Batch Hash (registerBatch)"
-    M->>P: "Distributes Drug with QR Code"
-    P->>P: "Scans QR & Computes ZK Proof Locally (1AM Wallet)"
-    P->>N: "Submit Proof & Nullifier (verifyDrug)"
-    N->>N: "Verify Proof & Update Ledger"
-    N-->>P: "Cryptographic Authenticity Result"
+    M->>N: Deploy zkrx.compact
+    Note over M,N: Generates Public Contract Address
+    M->>N: Execute registerBatch()
+    Note over M,N: Mutates Public State: Map[BatchHash] = 0
+    M->>P: Distributes Drug with QR Code (Item Secret)
+    P->>P: Scans QR Code
+    P->>P: Wallet Computes Local ZK-SNARK (Private Witness)
+    P->>N: Execute verifyDrug(Proof, Nullifier)
+    N->>N: Network Validates Proof & Checks Nullifier
+    N-->>P: State Transition Success (Authentic)
 ```
 
 ---
 
 ## 💻 TECHNOLOGY STACK
-*   **Frontend**: Next.js 16 + TypeScript + Tailwind CSS
+*   **Frontend**: Next.js 16 (App Router), TypeScript, Tailwind CSS, Framer Motion
 *   **Contracts**: Midnight Compact (`zkrx.compact`)
-*   **Integration**: Midnight JS SDK (Wallet API, Proof Provider, Public Data Provider)
-*   **Backend Support**: Dockerized Midnight Proof Server
-*   **Testing**: TSX Runner for Compact Circuits
+*   **Integration**: `@midnight-ntwrk/midnight-js-protocol` (Wallet API, Proof Provider, Indexer)
+*   **Testing**: TSX Runner with Native AST Execution
+*   **CI/CD**: GitHub Actions (Ubuntu-Latest)
 *   **Network**: Midnight Preprod Testnet
 
 ---
@@ -211,46 +188,48 @@ sequenceDiagram
 
 ```text
 zkrx/
-├── package.json           # Root workspace configuration
-├── .github/workflows/     # GitHub Actions CI/CD pipelines
+├── package.json               # Root workspace (Monorepo orchestration)
+├── .github/workflows/ci.yml   # CI/CD pipeline (Compiler & Tests)
 ├── zk-circuit/
-│   ├── contracts/         # Midnight Compact smart contract source code
-│   │   ├── managed/       # Generated ZK circuits, proving keys, and verification keys
-│   │   └── zkrx.compact   # Core selective disclosure logic
-│   └── tests/             # Automated test suite validating ZK constraints
+│   ├── contracts/             
+│   │   ├── managed/           # Generated BZKIR circuits, .pk, and .vk files
+│   │   └── zkrx.compact       # Core ZK state transition logic and assertions
+│   └── tests/
+│       └── zkrx.test.ts       # Automated testing for negative/positive constraints
 └── web-dapp/
-    ├── src/app/           # Next.js App Router (Landing, Manufacturer, Verify, Explorer)
-    ├── src/providers/     # Midnight Wallet SDK integration context
-    └── package.json       # Frontend dependencies and Next.js config
+    ├── src/app/               # Next.js UI (Manufacturer Dashboard & Verify Portal)
+    └── src/providers/         # DApp Connector Context & Midnight SDK API Wrappers
 ```
 
 ---
 
-## 🚀 SETUP & RUN LOCALLY
-
-To clone and run the ZKRx platform locally on your machine, follow these steps:
+## 🚀 RUN LOCALLY
 
 ### Prerequisites
-1. **Node.js**: Ensure you have Node.js v22 or higher installed.
-2. **Wallet**: Install the **1A.M. Wallet** (or Lace) browser extension and enable the DApp Connector. (We strongly recommend 1A.M. to avoid DUST balancing issues).
+1. **Node.js**: `v22` or higher is strictly required for Midnight SDK compatibility.
+2. **Wallet**: Install the **1A.M. Wallet** (or Lace) browser extension. *1A.M. is highly recommended for Preprod to avoid un-spendable DUST limits.*
 
 ### Step-by-Step Guide
-1. **Clone the repository:**
+1. **Clone the Repository:**
    ```bash
    git clone https://github.com/SimpleCoder26/ZKRx.git
    cd ZKRx
    ```
-2. **Install Dependencies (Monorepo):**
-   This single command installs everything for both the circuit and the dapp.
+2. **Install Dependencies:**
+   Our monorepo design installs both the circuit and frontend requirements simultaneously.
    ```bash
    npm install
    ```
-3. **Launch the Frontend:**
+3. **Compile Circuits (Optional, tracked in git):**
+   ```bash
+   npm run compile
+   ```
+4. **Launch the Frontend Server:**
    ```bash
    npm run dev
    ```
-4. **Open the dApp:**
-   Visit `http://localhost:3000` in your browser. Connect your 1A.M. wallet and interact with the Live Preprod network!
+5. **Interact:**
+   Navigate to `http://localhost:3000`. Connect your wallet, switch to the Preprod network, and experience Selective Disclosure in action.
 
 ---
 
