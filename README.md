@@ -44,8 +44,8 @@ When a patient scans a drug's QR code, the ZKRx Next.js application bridges to t
 2. **Integrity**: The prover holds knowledge of the exact private `item_secret` matching the commitment.
 3. **Uniqueness**: A deterministic collision-resistant **Nullifier** is derived from the `item_secret`. If this nullifier exists in the network's `consumed_nullifiers` set, the smart contract's state transition function rejects the transaction, mathematically preventing replay attacks and double-spending.
 
-**Hackathon Category Alignment: Private Allowlist Access**
-ZKRx is a textbook implementation of *Private Allowlist Access*. It proves that an item (the drug) is a valid member of an authorized allowlist (the manufacturer's registered batch) without ever disclosing the item's underlying identifier to the consensus network.
+**Hackathon Category Alignment: Identity/credentials (Confidential Credentials)**
+ZKRx is a textbook implementation of *Confidential Credentials* within the **Identity/credentials** category. It proves that a physical credential (the drug's cryptographic QR payload) is a valid, authentic member of a manufacturer's registered supply chain without ever disclosing the item's underlying identifier or private state to the public consensus network.
 
 ---
 

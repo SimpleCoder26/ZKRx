@@ -15,9 +15,9 @@ The global pharmaceutical supply chain is plagued by a $4.4 billion counterfeit 
 
 ## 2. The Solution: Cryptographic Selective Disclosure
 
-**ZKRx** is a decentralized, privacy-preserving verification protocol engineered exclusively for the Midnight blockchain. By leveraging Midnight’s native **Selective Disclosure** capabilities, ZKRx implements a trustless **Private Allowlist Access** pattern. 
+**ZKRx** is a decentralized, privacy-preserving verification protocol engineered exclusively for the Midnight blockchain. By leveraging Midnight’s native **Selective Disclosure** capabilities, ZKRx fits perfectly into the **Identity/credentials** category, implementing a trustless **Confidential Credentials** pattern. 
 
-The protocol achieves absolute verification of pharmaceutical authenticity via Zero-Knowledge succinct non-interactive arguments of knowledge (zk-SNARKs) without exposing the underlying physical payload data to the consensus layer.
+The protocol achieves absolute verification of pharmaceutical authenticity via Zero-Knowledge succinct non-interactive arguments of knowledge (zk-SNARKs) without exposing the underlying physical payload data (the item's credential) to the consensus layer.
 
 ### Protocol Mechanics:
 1. **Cryptographic Commitment:** A manufacturer commits a batch to the ledger by submitting a cryptographic hash of the batch metadata, establishing an immutable state root.
