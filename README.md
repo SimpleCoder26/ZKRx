@@ -98,18 +98,28 @@ The network verifies the proof and updates the public ledger, but remains comple
 
 ## 🧾 CHECKPOINT DELIVERABLES: DEPLOYMENT PROOFS
 
-### 1. Successful Contract Compilation
-*Terminal output verifying the successful compilation of the ZK circuits and generation of proving/verification keys.*
+### 1. Zero-Knowledge Circuit Compilation (Backend)
+*Terminal output verifying the successful compilation of the Midnight Compact ZK circuits (`zkrx.compact`) into BZKIR and ZKIR formats, generating the necessary proving and verification keys for local execution.*
 <details open>
-<summary><b>View Compile Output</b></summary>
+<summary><b>View Circuit Compile Output</b></summary>
 <br>
 
 <!-- Insert Screenshot Here -->
-<img src="./web-dapp/img/compile-out.png" width="800" alt="Compile Output">
+<img src="./web-dapp/img/compile-out-backend.png" width="800" alt="Backend Compile Output">
 </details>
 
-### 2. Verified Preprod Network Deployment
-*Official Midnight Explorer verification proving the smart contract is fully deployed and active on the Preprod blockchain.*
+### 2. DApp Production Build (Frontend)
+*Next.js 16 production build output demonstrating the clean compilation of the frontend interface, static route generation, and WebAssembly integration logic via the Midnight.js SDK.*
+<details open>
+<summary><b>View Frontend Build Output</b></summary>
+<br>
+
+<!-- Insert Screenshot Here -->
+<img src="./web-dapp/img/compile-out-frontend.png" width="800" alt="Frontend Build Output">
+</details>
+
+### 3. Verified Preprod Network Deployment
+*Official Midnight Explorer verification proving the smart contract is fully deployed and active on the Preprod blockchain, confirming its state is tracked by network consensus.*
 <details open>
 <summary><b>View Deployment Success</b></summary>
 <br>
@@ -118,8 +128,8 @@ The network verifies the proof and updates the public ledger, but remains comple
 <img src="./web-dapp/img/contracts-deployed.png" width="800" alt="Deployed Contract">
 </details>
 
-### 3. Verified ZK-Proof Submission on Preprod
-*Official Midnight Explorer verification proving the successful submission of a Zero-Knowledge Proof to the Preprod network.*
+### 4. Verified ZK-Proof Submission on Preprod
+*Official Midnight Explorer verification proving the successful submission of a Zero-Knowledge Proof to the Preprod network, executing the `verifyDrug` state transition securely.*
 *Transaction Hash:* [0x88a11a0e7333fb9cd69e58d67cc1586688cccaff2651b7dd37bb3f682ccb2cf8](https://preprod.midnightexplorer.com/transactions/0x88a11a0e7333fb9cd69e58d67cc1586688cccaff2651b7dd37bb3f682ccb2cf8)
 <details open>
 <summary><b>View Successful Transaction</b></summary>
@@ -129,10 +139,8 @@ The network verifies the proof and updates the public ledger, but remains comple
 <img src="./web-dapp/img/successfull-txn.png" width="800" alt="Successful Transaction">
 </details>
 
-
-
-### 4. Passing Test Suite (Level 3)
-*Terminal output proving 3+ successful passing tests for the Smart Contract invariants.*
+### 5. Passing Test Suite (Level 3)
+*Terminal output proving 3+ successful passing tests. Crucially, the tests rigorously validate circuit logic by ensuring `verifyDrug` mathematically rejects attempts on unregistered batches.*
 <details open>
 <summary><b>View Test Output</b></summary>
 <br>
@@ -141,8 +149,8 @@ The network verifies the proof and updates the public ledger, but remains comple
 <img src="./web-dapp/img/3+test.png" width="800" alt="Passing Tests">
 </details>
 
-### 5. Unified CI/CD Pipeline (Level 3)
-*GitHub Actions dashboard verifying the automated testing and build processes.*
+### 6. Unified CI/CD Pipeline (Level 3)
+*GitHub Actions dashboard verifying the automated pipeline. As required for Level 3 compliance, this includes a dedicated `Compile Compact Contract` step executed successfully before running tests.*
 <details open>
 <summary><b>View CI/CD Pipeline</b></summary>
 <br>
