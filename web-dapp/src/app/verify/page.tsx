@@ -62,11 +62,15 @@ function VerifyDrugContent() {
       console.error("Verification failed:", err);
       const msg = err?.message || String(err);
       
-      if (msg.includes("already been scanned") || msg.includes("Counterfeit")) {
+      if (msg.includes("Invalid QR code format")) {
+        setResult('error');
+        setErrorMsg("Invalid format. Please paste the exact payload from the Batch Details page, which looks like: [BatchHash]-[ItemSecret]");
+        toast.error("Format Error");
+      } else if (msg.includes("already been scanned") || msg.includes("Counterfeit")) {
         setResult('counterfeit');
         setErrorMsg("This drug has already been scanned and verified. Potential Counterfeit Warning!");
         toast.error("⚠️ Potential counterfeit detected!");
-      } else if (msg.includes("unregistered") || msg.includes("Invalid")) {
+      } else if (msg.includes("unregistered") || msg.includes("Invalid batch")) {
         setResult('counterfeit');
         setErrorMsg("This batch hash is not registered on the blockchain. The drug may be counterfeit.");
         toast.error("⚠️ Unregistered batch — potential counterfeit!");
