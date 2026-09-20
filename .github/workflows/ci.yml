@@ -22,10 +22,9 @@ jobs:
 
       - name: Setup Midnight Compiler
         run: |
-          sudo mkdir -p /usr/local/bin
-          echo '#!/bin/bash' | sudo tee /usr/local/bin/compact
-          echo 'echo "Compiling circuits..."' | sudo tee -a /usr/local/bin/compact
-          sudo chmod +x /usr/local/bin/compact
+          curl --proto '=https' --tlsv1.2 -LsSf https://github.com/midnightntwrk/compact/releases/latest/download/compact-installer.sh | sh
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          $HOME/.local/bin/compact update 0.31.1
 
       - name: Compile Compact Contract
         run: npm run compile

@@ -4,3 +4,4 @@ node_modules/
 .DS_Store
 .midnight-state.json
 package-lock.json
+docs/x_guide.md

@@ -24,6 +24,7 @@
 *   **🔗 Live Demo**: [zkrx.vercel.app](https://zkrx.vercel.app/)
 *   **🎬 Demo Video**: [youtu.be/tnvLooVmSYw](https://youtu.be/tnvLooVmSYw)
 *   **📝 Product Proposal**: [View Approved Idea Document](./PROPOSAL.md)
+*   **🐦 Product X Profile**: [https://x.com/ZKRxPlatform](https://x.com/ZKRxPlatform)
 *   **⚙️ Smart Contract Source**: [`zkrx.compact`](./zk-circuit/contracts/zkrx.compact)
 *   **📡 Contract Explorer**: [`0x0d2181f9545b4f21f142eb81970c50887363533bd55f51e5a4dade7e096f27f4`](https://preprod.midnightexplorer.com/contracts/0d2181f9545b4f21f142eb81970c50887363533bd55f51e5a4dade7e096f27f4) *(Note: Due to known RPC routing anomalies on the Midnight Explorer, you may need to access this link via a private network/VPN or Cloudflare DNS).*
 
@@ -87,6 +88,19 @@ Below is the definitive matrix mapping the Midnight Builder Challenge requiremen
 | **Test Output Screenshot** | ✅ **Done.** | Hosted at [`3+test.png`](./web-dapp/img/3+test.png). |
 | **CI/CD Badge & Workflow** | ✅ **Done.** | Badge at top of README. Screenshot at [`ci-cd-pipeline.png`](./web-dapp/img/ci-cd-pipeline.png). |
 | **Privacy Model "Observer"** | ✅ **Done.** | Deep technical breakdown in the **Privacy Model** section below. |
+
+### ◑ Level 4 Submission Requirements
+
+| Requirement | Technical Status | Implementation Proof |
+| :--- | :--- | :--- |
+| **Working MVP on Preprod** | ✅ **Done.** | Smart contract deployed to Midnight Preprod with live UI on Vercel. |
+| **Documentation (README+Usage)** | ✅ **Done.** | Full README + new user guide at [`docs/USAGE.md`](./docs/USAGE.md). |
+| **CI/CD Pipeline Running** | ✅ **Done.** | Updated `.github/workflows/ci.yml` using the authentic `@midnight-ntwrk/compact-compiler`. |
+| **Product X Profile Created** | ✅ **Done.** | Active X profile established at [https://x.com/ZKRxPlatform](https://x.com/ZKRxPlatform). |
+| **Minimum 15 Meaningful Commits**| ✅ **Done.** | Project has over 80 semantic commits. |
+| **Live Preprod Demo Link** | ✅ **Done.** | [zkrx.vercel.app](https://zkrx.vercel.app/) |
+| **Demo Video of MVP** | ✅ **Done.** | [youtu.be/tnvLooVmSYw](https://youtu.be/tnvLooVmSYw) |
+| **Product Proposal** | ✅ **Done.** | Target users, use-case, and Mainnet plan at [`PROPOSAL.md`](./PROPOSAL.md). |
 
 ---
 
@@ -187,19 +201,31 @@ sequenceDiagram
 ## 📂 PROJECT STRUCTURE
 
 ```text
-zkrx/
-├── package.json               # Root workspace (Monorepo orchestration)
-├── .github/workflows/ci.yml   # CI/CD pipeline (Compiler & Tests)
-├── zk-circuit/
-│   ├── contracts/             
-│   │   ├── managed/           # Generated BZKIR circuits, .pk, and .vk files
-│   │   └── zkrx.compact       # Core ZK state transition logic and assertions
-│   └── tests/
-│       └── zkrx.test.ts       # Automated testing for negative/positive constraints
-└── web-dapp/
-    ├── src/app/               # Next.js UI (Manufacturer Dashboard & Verify Portal)
-    └── src/providers/         # DApp Connector Context & Midnight SDK API Wrappers
+ZKRx/
+├── zk-circuit/            # Midnight Backend
+│   ├── contracts/         # ZKRx Compact contract
+│   └── tests/             # Native ZK execution tests
+├── web-dapp/              # Next.js Frontend
+│   └── src/               # Wallet integration & UI
+├── docs/                  
+│   └── USAGE.md           # User-facing platform guide
+├── PROPOSAL.md            # Approved Product Idea
+└── .github/workflows/     # CI/CD pipeline
 ```
+
+---
+
+## 📖 USAGE GUIDE
+
+For a step-by-step walkthrough of how to register batches, scan drugs, and understand the privacy guarantees, see:
+
+**🔗 [`docs/USAGE.md`](./docs/USAGE.md)**
+
+---
+
+## 🐦 PRODUCT X PROFILE
+
+**🐦 [Follow ZKRx on X](https://x.com/ZKRxPlatform)**
 
 ---
 
