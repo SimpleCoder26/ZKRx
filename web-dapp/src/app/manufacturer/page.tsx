@@ -89,18 +89,18 @@ export default function ManufacturerDashboard() {
         txnHash: result,
         minter: walletAddress,
         quantity: qty,
-        // itemSecrets are kept in React state ONLY for immediate QR printing.
-        // They are intentionally NOT persisted to localStorage to protect the private witness.
+        // itemSecrets are kept in React state ONLY for immediate QR label printing.
+        // They are ephemeral and lost on page refresh — this is intentional to protect the private witness.
         itemSecrets: itemSecrets
       };
 
       setIssuedBatches(prev => {
         const updated = [newBatch, ...prev];
         if (walletAddress) {
-          // Simulate saving to a secure Manufacturer KMS Database.
-          // In a real-world scenario, this would be an encrypted backend DB.
-          // Since this is a demo, we store it in localStorage so the Batch Details page can print the labels later.
-          localStorage.setItem(`zkrx_issued_${walletAddress}`, JSON.stringify(updated));
+          // Persist only non-sensitive batch metadata to localStorage for the Batch Details page.
+          // Private witness data (itemSecrets) is deliberately stripped before storage.
+          const sanitized = updated.map(({ itemSecrets: _secrets, ...rest }) => rest);
+          localStorage.setItem(`zkrx_issued_${walletAddress}`, JSON.stringify(sanitized));
         }
         return updated;
       });

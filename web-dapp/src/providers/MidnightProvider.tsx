@@ -15,7 +15,6 @@ interface MidnightContextType {
   disconnectWallet: () => void;
   registerBatch: (batchHash: Uint8Array) => Promise<string>;
   verifyDrug: (batchHash: Uint8Array, itemSecretHex: string) => Promise<string>;
-  deploySmartContract: () => Promise<string>;
 }
 
 export function toHex(bytes: Uint8Array): string {
@@ -57,14 +56,6 @@ export function createPatchedPublicDataProvider(base: any, queryUrl: string) {
       );
       return action ? ContractState.deserialize(fromHex(action.state)) : null;
     },
-    async watchForTxData(txId: string) {
-      console.log('[ZKRx] Bypassing SDK WebSocket for tx:', txId);
-      return { public: { txHash: txId, blockHeight: 1 }, private: {} } as any;
-    },
-    async watchForDeployTxData(contractAddress: string) {
-      console.log('[ZKRx] Bypassing SDK WebSocket for deploy:', contractAddress);
-      return { public: { contractAddress, blockHeight: 1 }, private: {} } as any;
-    }
   };
 }
 
@@ -302,7 +293,8 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
           try {
             accountId = (await activeApi.getShieldedAddresses()).shieldedAddress;
           } catch (e2) {
-            accountId = 'anonymous-zkrx-account-' + Date.now();
+            // Deterministic fallback account ID when wallet addresses are unavailable
+            accountId = 'zkrx-default-account';
           }
         }
 
@@ -472,25 +464,8 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
     });
 
     console.log('[ZKRx] Calling registerBatch circuit...');
-    let txHash = '';
-    try {
-      const tx = await contract.callTx.registerBatch(batchHash);
-      txHash = tx.public.txHash;
-    } catch (callError: any) {
-      if (callError.message && callError.message.toLowerCase().includes('pending')) {
-        txHash = 'pending_' + Date.now();
-      } else if (callError.message && callError.message.includes('"txHash"')) {
-        try {
-          const jsonStart = callError.message.indexOf('{');
-          if (jsonStart !== -1) {
-            const parsed = JSON.parse(callError.message.substring(jsonStart));
-            if (parsed?.public?.txHash) txHash = parsed.public.txHash;
-          }
-        } catch { }
-      }
-      if (!txHash) throw callError;
-    }
-
+    const tx = await contract.callTx.registerBatch(batchHash);
+    const txHash = tx.public.txHash;
     console.log('[ZKRx] registerBatch TX:', txHash);
     return txHash;
   };
@@ -534,73 +509,17 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
     });
 
     console.log('[ZKRx] Calling verifyDrug circuit...');
-    let txHash = '';
-    try {
-      const tx = await contract.callTx.verifyDrug(batchHash);
-      txHash = tx.public.txHash;
-    } catch (callError: any) {
-      if (callError.message && callError.message.toLowerCase().includes('pending')) {
-        txHash = 'pending_' + Date.now();
-      } else if (callError.message && callError.message.includes('"txHash"')) {
-        try {
-          const jsonStart = callError.message.indexOf('{');
-          if (jsonStart !== -1) {
-            const parsed = JSON.parse(callError.message.substring(jsonStart));
-            if (parsed?.public?.txHash) txHash = parsed.public.txHash;
-          }
-        } catch { }
-      }
-      if (!txHash) throw callError;
-    }
-
+    const tx = await contract.callTx.verifyDrug(batchHash);
+    const txHash = tx.public.txHash;
     console.log('[ZKRx] verifyDrug TX:', txHash);
     return txHash;
   };
 
-  const deploySmartContract = async (): Promise<string> => {
-    await ensureConnection();
-    const providers = midnightProvidersRef.current;
-    const compiled = compiledContractRef.current;
-    if (!providers || !compiled) {
-      throw new Error('Midnight providers not initialized');
-    }
-
-    console.log('[ZKRx] Deploying Smart Contract via Midnight Wallet...');
-    const { createUnprovenDeployTx, submitTxAsync } = await import('@midnight-ntwrk/midnight-js-contracts');
-    const { sampleSigningKey } = await import('@midnight-ntwrk/compact-runtime');
-
-    const deployTxData = await createUnprovenDeployTx(providers, {
-      compiledContract: compiled,
-      args: [],
-      initialPrivateState: {},
-      signingKey: sampleSigningKey(),
-    } as any);
-
-    const newContractAddress = deployTxData.public.contractAddress;
-    console.log('[ZKRx] Pre-computed Contract Address:', newContractAddress);
-
-    try {
-      await submitTxAsync(providers, {
-        unprovenTx: deployTxData.private.unprovenTx,
-      } as any);
-    } catch (submitErr: any) {
-      if (submitErr && submitErr.public && submitErr.public.txHash) {
-        console.warn('[ZKRx] Wallet threw the success object, ignoring:', submitErr);
-      } else {
-        throw submitErr;
-      }
-    }
-
-    console.log('[ZKRx] Deployment Successful! Address:', newContractAddress);
-    localStorage.setItem('DEPLOYED_CONTRACT_ADDRESS', newContractAddress);
-    setContractAddress(newContractAddress);
-    return newContractAddress;
-  };
 
   return (
     <MidnightContext.Provider value={{
       walletConnected, walletAddress, walletBalance, isConnecting, networkId,
-      connectWallet, disconnectWallet, registerBatch, verifyDrug, deploySmartContract
+      connectWallet, disconnectWallet, registerBatch, verifyDrug
     }}>
       {children}
 
