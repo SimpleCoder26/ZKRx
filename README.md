@@ -144,6 +144,8 @@ Below is the definitive matrix mapping the Midnight Builder Challenge requiremen
 
 **Technical Validation:** Captures a confirmed 'DApp' transaction on the Preprod Explorer. This validates a successful Zero-Knowledge state transition, proving the frontend successfully generated a local ZK-Proof via the 1A.M. wallet and the network accepted it.
 
+**Transaction Explorer Link:** [0xcc6e53a2f08c0ef78e2d19d7e493820e341fe7f7155495ed0a97cbf9cce2dd24](https://preprod.midnightexplorer.com/transactions/0xcc6e53a2f08c0ef78e2d19d7e493820e341fe7f7155495ed0a97cbf9cce2dd24)
+
 <img src="./web-dapp/img/sucessfull-txn-new.png" width="800" alt="Successful Transaction">
 
 <br>
