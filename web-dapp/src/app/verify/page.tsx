@@ -282,7 +282,7 @@ function VerifyDrugContent() {
               </h2>
               
               <p className="text-emerald-50/70 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto mb-10 font-medium">
-                Cryptographic signature successfully verified on the Midnight Network. The zero-knowledge proof mathematically guarantees authenticity without exposing the manufacturer's private state.
+                This item's batch is registered on-chain, and this specific unit has not been previously scanned. The zero-knowledge proof confirms batch membership and nullifier uniqueness without revealing the item secret.
               </p>
               
               {txHash && (

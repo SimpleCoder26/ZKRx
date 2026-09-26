@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import { motion, AnimatePresence } from 'framer-motion';
 import type { InitialAPI, ConnectedAPI } from '@midnight-ntwrk/dapp-connector-api';
 import { ContractState } from '@midnight-ntwrk/compact-runtime';
+import { Observable } from 'rxjs';
 
 interface MidnightContextType {
   walletConnected: boolean;
@@ -13,7 +14,9 @@ interface MidnightContextType {
   networkId: string | null;
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
+  initializeManufacturer: () => Promise<string>;
   registerBatch: (batchHash: Uint8Array) => Promise<string>;
+  registerItem: (batchHash: Uint8Array, itemSecretHex: string) => Promise<string>;
   verifyDrug: (batchHash: Uint8Array, itemSecretHex: string) => Promise<string>;
 }
 
@@ -33,10 +36,12 @@ export function fromHex(hex: string): Uint8Array {
 
 export function createPatchedPublicDataProvider(base: any, queryUrl: string) {
   async function queryLatest(query: string, address: string) {
-    const res = await fetch(queryUrl, {
+    // Force v4 endpoint because v1 is broken with a 308 redirect to a 404 page
+    const forceUrl = queryUrl.replace('/api/v1/', '/api/v4/');
+    const res = await fetch(forceUrl, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ query, variables: { address } }),
+      body: JSON.stringify({ query, variables: { address: address.startsWith('0x') ? address : '0x' + address } }),
     });
     if (!res.ok) throw new Error(`Indexer HTTP error: ${res.status}`);
     const payload = await res.json();
@@ -56,6 +61,66 @@ export function createPatchedPublicDataProvider(base: any, queryUrl: string) {
       );
       return action ? ContractState.deserialize(fromHex(action.state)) : null;
     },
+    async watchForTxData(txHash: string) {
+      console.log('[ZKRx] Watching for tx confirmation:', txHash);
+
+      // Strategy: Try the SDK's native WebSocket-based watcher first.
+      // It returns the complete TxData structure that callTx needs to
+      // update private state and return properly.  Only fall back to
+      // HTTP polling if the WebSocket times out or errors.
+      try {
+        const nativeResult = await Promise.race([
+          base.watchForTxData(txHash),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Native watchForTxData timed out after 120s')), 120_000)
+          )
+        ]);
+        console.log('[ZKRx] Native tx confirmation received for:', txHash);
+        return nativeResult;
+      } catch (nativeErr: any) {
+        console.warn('[ZKRx] Native watchForTxData failed, using HTTP polling fallback:', nativeErr?.message);
+      }
+
+      // Fallback: poll the indexer HTTP endpoint for contract state changes
+      const { getContractAddress } = await import('@/config');
+      const contractAddress = getContractAddress();
+
+      let initialStateHex: string | null = null;
+      try {
+        const snap = await queryLatest(
+          `query LATEST($address: HexEncoded!) { contractAction(address: $address) { state } }`,
+          contractAddress
+        );
+        initialStateHex = snap?.state ?? null;
+      } catch (e) {
+        console.warn('[ZKRx] Failed to fetch initial state for polling', e);
+      }
+
+      let attempts = 0;
+      const maxAttempts = 60;
+      const intervalMs = 10_000;
+      while (attempts < maxAttempts) {
+        await new Promise(r => setTimeout(r, intervalMs));
+        attempts++;
+        try {
+          const current = await queryLatest(
+            `query LATEST($address: HexEncoded!) { contractAction(address: $address) { state } }`,
+            contractAddress
+          );
+          if (current && current.state !== initialStateHex) {
+            console.log('[ZKRx] Contract state changed — tx confirmed after', attempts, 'polls');
+            // Return the full state so the SDK can reconstruct the tx data.
+            // We include the serialized contract state which the SDK uses
+            // to apply state transitions and update private state.
+            const contractState = ContractState.deserialize(fromHex(current.state));
+            return { public: { txHash, contractState }, private: {} };
+          }
+        } catch (e) {
+          console.warn('[ZKRx] Polling attempt', attempts, 'error:', e);
+        }
+      }
+      throw new Error('Transaction confirmation timeout after ' + maxAttempts + ' attempts. The network may be congested — please try again.');
+    }
   };
 }
 
@@ -111,7 +176,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
   const [midnightProviders, setMidnightProviders] = useState<any>(null);
   const [compiledContract, setCompiledContract] = useState<any>(null);
   const [contractAddress, setContractAddress] = useState<string>('');
-  const currentWitnessState = useRef({ secretBytes: new Uint8Array(32) });
+  const currentWitnessState = useRef<{ secretBytes: Uint8Array, lastPrivateState?: any }>({ secretBytes: new Uint8Array(32) });
 
   // Refs mirror the state so transaction functions can read them synchronously
   // (React setState is async and won't be visible in the same execution context)
@@ -119,6 +184,9 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
   const midnightProvidersRef = useRef<any>(null);
   const compiledContractRef = useRef<any>(null);
   const walletAddressRef = useRef<string | null>(null);
+  // Single persistent contract instance — maintains private state continuity
+  // across initializeManufacturer, registerBatch, registerItem, and verifyDrug
+  const contractInstanceRef = useRef<any>(null);
 
   const [showModal, setShowModal] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'idle' | 'connecting' | 'success'>('idle');
@@ -195,7 +263,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
             console.warn(`[ZKRx] ✗ Network ${net}: ${e?.message || String(e)}`);
           }
         }
-        
+
         // Fallback: try connecting without network argument (CIP-30 style)
         try {
           console.log(`[ZKRx] Attempting connect without network argument (fallback)`);
@@ -211,7 +279,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
       };
 
       let success = await tryConnect();
-      
+
       // If it failed, wait 500ms and try once more (fixes 1A.M. sleep/glitch issue)
       if (!success) {
         console.log('[ZKRx] Retrying wallet connection in 500ms...');
@@ -254,6 +322,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
         setMidnightNetworkId(connectedNetwork);
 
         const config = await activeApi.getConfiguration();
+        console.log('[ZKRx] Wallet provided config:', config);
         const zkConfig = new fetchZkConfigProvider(window.location.origin + '/managed/zkrx/', window.fetch.bind(window));
 
         const shieldedAddresses = await activeApi.getShieldedAddresses();
@@ -270,18 +339,17 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
           }
         } as any;
 
+        let lastSubmittedTxHash = '';
         const midnightProvider = {
           submitTx: async (tx: any) => {
             const txBytes = tx.serialize();
             const txHex = toHex(txBytes);
 
-            // submitTransaction returns void per the DApp Connector API spec.
-            // We must compute the transaction hash using the ledger's built-in method.
             await activeApi.submitTransaction(txHex);
 
-            // transactionHash() already returns a hex string, do not wrap in toHex()
             const hashHex = tx.transactionHash();
             console.log('[ZKRx] Computed TX Hash:', hashHex);
+            lastSubmittedTxHash = hashHex;
             return hashHex;
           }
         } as any;
@@ -300,14 +368,16 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
 
         // The itemSecret is dynamically updated before each verifyDrug call via currentWitnessState
 
-        const basePublicDataProvider = indexerPublicDataProvider(config.indexerUri, config.indexerWsUri);
+        const wsUri = config.indexerWsUri || config.indexerUri.replace(/^http/, 'ws').replace(/\/graphql\/?$/, '/graphql/ws');
+        const rawPublicDataProvider = indexerPublicDataProvider(config.indexerUri, wsUri);
+        const basePublicDataProvider = createPatchedPublicDataProvider(rawPublicDataProvider, config.indexerUri);
         const providers: any = {
           privateStateProvider: levelPrivateStateProvider({
             privateStateStoreName: 'zkrx-state-v1',
             accountId: accountId,
-            privateStoragePasswordProvider: () => 'Local-Devnet-Development-Placeholder-1'
+            privateStoragePasswordProvider: () => `zkrx-${accountId}-private-state`
           }),
-          publicDataProvider: createPatchedPublicDataProvider(basePublicDataProvider, config.indexerUri),
+          publicDataProvider: basePublicDataProvider,
           zkConfigProvider: zkConfig,
           walletProvider,
           midnightProvider: midnightProvider,
@@ -316,7 +386,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
 
         // 1AM wallet supports in-browser proving; Lace does NOT (its getProvingProvider
         // tries to fetch from a non-existent remote server, causing "Failed to fetch").
-        // Only use getProvingProvider for wallets that support it (1AM).
+        // We will use 1A.M.'s built-in prover to avoid relying on a local docker proof-server.
         const isLaceWallet = walletId === 'lace';
         if (!isLaceWallet && typeof activeApi.getProvingProvider === 'function') {
           console.log('[ZKRx] 🚀 Using Wallet-provided in-browser Proving Provider (1AM)');
@@ -333,7 +403,24 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
 
         const compiled = CompiledContract.make('Contract', Contract).pipe(
           CompiledContract.withWitnesses({
-            itemSecret: () => [undefined, currentWitnessState.current.secretBytes]
+            itemSecret: () => [undefined, currentWitnessState.current.secretBytes],
+            manufacturerSecret: (context: any) => {
+              const state = context.privateState || {};
+              let secretBytes: Uint8Array;
+              if (state.manufacturerSecretHex) {
+                // Restore from local private state
+                const hex = state.manufacturerSecretHex;
+                secretBytes = new Uint8Array(hex.length / 2);
+                for (let i = 0; i < hex.length; i += 2) secretBytes[i / 2] = parseInt(hex.slice(i, i + 2), 16);
+              } else {
+                // Generate a new secure secret and save it to the private state as hex
+                secretBytes = new Uint8Array(32);
+                crypto.getRandomValues(secretBytes);
+                state.manufacturerSecretHex = Array.from(secretBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+              }
+              currentWitnessState.current.lastPrivateState = state;
+              return [state, secretBytes];
+            }
           }),
           CompiledContract.withCompiledFileAssets('/managed/zkrx/')
         );
@@ -344,6 +431,27 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
         setCompiledContract(compiled);
         compiledContractRef.current = compiled;
         setContractAddress(currentContractAddress);
+
+        // Create a SINGLE persistent contract instance that maintains private
+        // state continuity across all circuit calls (initializeManufacturer,
+        // registerBatch, registerItem, verifyDrug).  This is critical — each
+        // call to findDeployedContract() with initialPrivateState:{} would
+        // otherwise create a fresh context, causing the manufacturerSecret
+        // witness to generate a different random secret on every invocation.
+        try {
+          const contractInstance = await findDeployedContract(providers, {
+            contractAddress: currentContractAddress,
+            compiledContract: compiled,
+            privateStateId: 'zkrx-state-v1',
+            initialPrivateState: {},
+          });
+          contractInstanceRef.current = contractInstance;
+          console.log('[ZKRx] Persistent contract instance created.');
+        } catch (contractErr: any) {
+          console.error('[ZKRx] Failed to find deployed contract:', contractErr);
+          // Non-fatal: the user can still connect; we just won't have a contract instance yet.
+          // Transaction functions will check for this and throw a clear error.
+        }
 
         console.log('[ZKRx] Contract Providers configured successfully!');
       } catch (initErr: any) {
@@ -415,6 +523,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
     setMidnightProviders(null);
     midnightProvidersRef.current = null;
     compiledContractRef.current = null;
+    contractInstanceRef.current = null;
     setConnectionStatus('idle');
     localStorage.removeItem('zkrx_connected_wallet');
     localStorage.removeItem('zkrx_wallet_address');
@@ -424,7 +533,12 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
 
   // ensureConnection uses REFS (not state) so values are available synchronously
   const ensureConnection = async () => {
-    if (connectedApiRef.current && midnightProvidersRef.current) return;
+    if (connectedApiRef.current && midnightProvidersRef.current) {
+      // Re-assert the network ID global state in case a hot-reload wiped the module's memory
+      const { setNetworkId: setMidnightNetworkId } = await import('@midnight-ntwrk/midnight-js-network-id');
+      setMidnightNetworkId('preprod');
+      return;
+    }
     const savedWallet = localStorage.getItem('zkrx_connected_wallet');
     if (savedWallet) {
       console.log('[ZKRx] Hydrating connection silently for transaction...');
@@ -438,30 +552,26 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const initializeManufacturer = async (): Promise<string> => {
+    await ensureConnection();
+    const contract = contractInstanceRef.current;
+    if (!contract) {
+      throw new Error('Contract not initialized. Please disconnect and reconnect your wallet.');
+    }
+
+    console.log('[ZKRx] Calling initializeManufacturer circuit...');
+    const tx = await contract.callTx.initializeManufacturer();
+    const txHash = tx.public.txHash;
+    console.log('[ZKRx] initializeManufacturer TX:', txHash);
+    return txHash;
+  };
+
   const registerBatch = async (batchHash: Uint8Array): Promise<string> => {
     await ensureConnection();
-    // Use refs for synchronous access (React state may not have updated yet)
-    const api = connectedApiRef.current;
-    const providers = midnightProvidersRef.current;
-    const compiled = compiledContractRef.current;
-    const addr = walletAddressRef.current;
-    if (!api || !providers || !addr) {
-      throw new Error('Please connect your wallet first');
+    const contract = contractInstanceRef.current;
+    if (!contract) {
+      throw new Error('Contract not initialized. Please disconnect and reconnect your wallet.');
     }
-    const { getContractAddress } = await import('@/config');
-    const latestAddress = getContractAddress();
-
-    if (!compiled || !latestAddress) {
-      throw new Error('Midnight providers or contract address not initialized');
-    }
-
-    const { findDeployedContract } = await import('@midnight-ntwrk/midnight-js-contracts');
-    const contract = await findDeployedContract(providers, {
-      contractAddress: latestAddress,
-      compiledContract: compiled,
-      privateStateId: 'zkrx-state-v1',
-      initialPrivateState: {},
-    });
 
     console.log('[ZKRx] Calling registerBatch circuit...');
     const tx = await contract.callTx.registerBatch(batchHash);
@@ -470,26 +580,18 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
     return txHash;
   };
 
-  const verifyDrug = async (batchHash: Uint8Array, itemSecretHex: string): Promise<string> => {
+  const registerItem = async (batchHash: Uint8Array, itemSecretHex: string): Promise<string> => {
     await ensureConnection();
-    const providers = midnightProvidersRef.current;
-    const compiled = compiledContractRef.current;
-    if (!providers || !compiled) {
-      throw new Error('Please connect your wallet first');
-    }
-    const { getContractAddress } = await import('@/config');
-    const latestAddress = getContractAddress();
-
-    if (!latestAddress) {
-      throw new Error('Contract address not initialized');
+    const contract = contractInstanceRef.current;
+    if (!contract) {
+      throw new Error('Contract not initialized. Please disconnect and reconnect your wallet.');
     }
 
-    // Update the dynamic witness state with the provided secret from the QR code
     const normalizedSecret = itemSecretHex.replace(/^0x/, '').trim();
     if (normalizedSecret.length !== 64 || !/^[0-9a-fA-F]+$/.test(normalizedSecret)) {
       throw new Error('Invalid Item Secret format. Must be a valid 32-byte (64-character) hex string.');
     }
-    
+
     const secretBytes = new Uint8Array(32);
     try {
       for (let i = 0; i < 32; i++) {
@@ -500,13 +602,35 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
     }
     currentWitnessState.current.secretBytes = secretBytes;
 
-    const { findDeployedContract } = await import('@midnight-ntwrk/midnight-js-contracts');
-    const contract = await findDeployedContract(providers, {
-      contractAddress: latestAddress,
-      compiledContract: compiled,
-      privateStateId: 'zkrx-state-v1',
-      initialPrivateState: {},
-    });
+    console.log('[ZKRx] Calling registerItem circuit...');
+    const tx = await contract.callTx.registerItem(batchHash);
+    const txHash = tx.public.txHash;
+    console.log('[ZKRx] registerItem TX:', txHash);
+    return txHash;
+  };
+
+  const verifyDrug = async (batchHash: Uint8Array, itemSecretHex: string): Promise<string> => {
+    await ensureConnection();
+    const contract = contractInstanceRef.current;
+    if (!contract) {
+      throw new Error('Contract not initialized. Please disconnect and reconnect your wallet.');
+    }
+
+    // Update the dynamic witness state with the provided secret from the QR code
+    const normalizedSecret = itemSecretHex.replace(/^0x/, '').trim();
+    if (normalizedSecret.length !== 64 || !/^[0-9a-fA-F]+$/.test(normalizedSecret)) {
+      throw new Error('Invalid Item Secret format. Must be a valid 32-byte (64-character) hex string.');
+    }
+
+    const secretBytes = new Uint8Array(32);
+    try {
+      for (let i = 0; i < 32; i++) {
+        secretBytes[i] = parseInt(normalizedSecret.slice(i * 2, i * 2 + 2), 16);
+      }
+    } catch (e) {
+      throw new Error('Failed to parse QR code item secret.');
+    }
+    currentWitnessState.current.secretBytes = secretBytes;
 
     console.log('[ZKRx] Calling verifyDrug circuit...');
     const tx = await contract.callTx.verifyDrug(batchHash);
@@ -519,7 +643,7 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
   return (
     <MidnightContext.Provider value={{
       walletConnected, walletAddress, walletBalance, isConnecting, networkId,
-      connectWallet, disconnectWallet, registerBatch, verifyDrug
+      connectWallet, disconnectWallet, initializeManufacturer, registerBatch, registerItem, verifyDrug
     }}>
       {children}
 

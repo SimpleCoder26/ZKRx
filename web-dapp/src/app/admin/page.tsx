@@ -9,8 +9,19 @@ import { PREPROD_CONTRACT_ADDRESS } from '@/config';
 export default function AdminPage() {
   const { walletConnected } = useMidnight();
   const [copied, setCopied] = useState(false);
+  const [contractAddress, setContractAddress] = useState(PREPROD_CONTRACT_ADDRESS);
 
-  const contractAddress = PREPROD_CONTRACT_ADDRESS;
+  // Load dynamically from localStorage on mount
+  React.useEffect(() => {
+    const stored = localStorage.getItem('ZKRX_DEPLOYED_CONTRACT_ADDRESS') || localStorage.getItem('DEPLOYED_CONTRACT_ADDRESS');
+    if (stored && stored.includes('0d2181f9545b4f21f142eb81970c50887363533bd55f51e5a4dade7e096f27f4')) {
+      localStorage.removeItem('ZKRX_DEPLOYED_CONTRACT_ADDRESS');
+      localStorage.removeItem('DEPLOYED_CONTRACT_ADDRESS');
+      setContractAddress(PREPROD_CONTRACT_ADDRESS);
+    } else if (stored) {
+      setContractAddress(stored);
+    }
+  }, []);
 
   const copyAddress = () => {
     navigator.clipboard.writeText(contractAddress);
@@ -69,9 +80,15 @@ export default function AdminPage() {
               </a>
             </motion.div>
 
-            {!walletConnected && (
-              <p className="mt-6 text-sm text-black/40 text-center">
-                Connect your wallet to interact with the deployed contract.
+            {walletConnected ? (
+              <div className="mt-8 border-t border-black/5 pt-8 text-center">
+                <p className="text-sm text-black/40">
+                  Wallet connected. You can now interact with the deployed contract on other pages.
+                </p>
+              </div>
+            ) : (
+              <p className="mt-6 text-sm text-black/40 text-center border-t border-black/5 pt-8">
+                Connect your wallet to deploy a new contract or interact with the network.
               </p>
             )}
           </motion.div>

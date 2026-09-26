@@ -2,48 +2,120 @@ pragma language_version >= 0.23;
 
 import CompactStandardLibrary;
 
-// The public ledger state for ZKRx
-// Maps a registered Batch Hash (Bytes<32>) to the number of times it has been verified/consumed.
+// ─── Manufacturer Authorization ───
+// The deployer calls initializeManufacturer() once to register their identity.
+// Their secret is hashed and stored in a Set. Only callers who can prove
+// knowledge of this secret may register batches or items.
+export ledger authorized_manufacturers: Set<Bytes<32>>;
+
+// ─── Batch Registry ───
+// Maps a registered Batch Hash to the number of times it has been verified.
 export ledger registered_batches: Map<Bytes<32>, Uint<32>>;
 
-// A set of used nullifiers to prevent double-scanning of the same drug item.
+// ─── Item Commitments ───
+// Cryptographically binds each item secret to its batch.
+// Each entry is hash(batchHash || itemSecret), computed by the manufacturer at
+// registration time. During verification, the patient's proof must match an
+// entry here, ensuring only manufacturer-issued secrets are accepted.
+export ledger item_commitments: Set<Bytes<32>>;
+
+// ─── Consumed Nullifiers ───
+// Prevents double-scanning of the same physical drug unit.
 export ledger consumed_nullifiers: Set<Bytes<32>>;
 
-// The private witness represents the drug item's secret seed embedded in the QR code.
+// ─── Private Witnesses ───
+// manufacturerSecret: the manufacturer's private key (never disclosed)
+// itemSecret: the drug unit's private QR code seed (never disclosed)
+witness manufacturerSecret(): Bytes<32>;
 witness itemSecret(): Bytes<32>;
 
-// Struct to securely hash the Batch Hash and Item Secret together
+// ─── Hashing Structs ───
+export struct ManufacturerAuth {
+    secret: Bytes<32>
+}
+
+export struct ItemBinding {
+    batchHash: Bytes<32>,
+    secret: Bytes<32>
+}
+
 export struct NullifierInput {
     batchHash: Bytes<32>,
     secret: Bytes<32>
 }
 
-// Circuit for Manufacturers to register a batch
+// ─── Circuit: Initialize Manufacturer ───
+// Called once after deployment. The manufacturer provides their secret via
+// the private witness. Its hash is stored as the authorized identity.
+export circuit initializeManufacturer(): [] {
+    const mfgSecret = manufacturerSecret();
+    const auth = ManufacturerAuth { secret: mfgSecret };
+    const commitment = persistentHash<ManufacturerAuth>(auth);
+    const revealedCommitment = disclose(commitment);
+    assert(!authorized_manufacturers.member(revealedCommitment), "Manufacturer already initialized");
+    authorized_manufacturers.insert(revealedCommitment);
+}
+
+// ─── Circuit: Register Batch (Manufacturer Only) ───
+// Records a new batch hash on the public ledger. Only the authorized
+// manufacturer can call this (proven via knowledge of the secret).
 export circuit registerBatch(batchHash: Bytes<32>): [] {
+    const mfgSecret = manufacturerSecret();
+    const auth = ManufacturerAuth { secret: mfgSecret };
+    const commitment = persistentHash<ManufacturerAuth>(auth);
+    const revealedCommitment = disclose(commitment);
+    assert(authorized_manufacturers.member(revealedCommitment), "Unauthorized: caller is not a registered manufacturer");
+
     const revealedHash = disclose(batchHash);
     assert(!registered_batches.member(revealedHash), "Batch already registered");
     registered_batches.insert(revealedHash, 0 as Uint<32>);
 }
 
-// Circuit for Patients to verify a drug
+// ─── Circuit: Register Item Commitment (Manufacturer Only) ───
+// Binds a specific item secret to its batch by storing hash(batchHash || itemSecret).
+export circuit registerItem(batchHash: Bytes<32>): [] {
+    const mfgSecret = manufacturerSecret();
+    const auth = ManufacturerAuth { secret: mfgSecret };
+    const commitment = persistentHash<ManufacturerAuth>(auth);
+    const revealedCommitment = disclose(commitment);
+    assert(authorized_manufacturers.member(revealedCommitment), "Unauthorized: caller is not a registered manufacturer");
+
+    const secret = itemSecret();
+    const binding = ItemBinding { batchHash: batchHash, secret: secret };
+    const itemCommitment = persistentHash<ItemBinding>(binding);
+    
+    const revealedItemCommitment = disclose(itemCommitment);
+    assert(!item_commitments.member(revealedItemCommitment), "Item commitment already registered");
+    item_commitments.insert(revealedItemCommitment);
+}
+
+// ─── Circuit: Verify Drug (Anyone) ───
+// A patient scans the QR code, which provides the batchHash + itemSecret.
+// The circuit proves:
+//   1. The batch exists on-chain
+//   2. The item secret was genuinely issued by the manufacturer (binding check)
+//   3. This specific unit hasn't been scanned before (nullifier check)
 export circuit verifyDrug(batchHash: Bytes<32>): [] {
     const secret = itemSecret();
-    
+
     // 1. Verify the batch exists on the ledger
     const revealedBatchHash = disclose(batchHash);
     assert(registered_batches.member(revealedBatchHash), "Invalid or unregistered batch");
-    
-    // 2. Cryptographically derive the nullifier INSIDE the circuit
-    const input = NullifierInput { batchHash: batchHash, secret: secret };
-    const derivedNullifier = persistentHash<NullifierInput>(input);
+
+    // 2. Verify the item secret is cryptographically bound to this batch
+    const binding = ItemBinding { batchHash: batchHash, secret: secret };
+    const itemCommitment = persistentHash<ItemBinding>(binding);
+    const revealedItemCommitment = disclose(itemCommitment);
+    assert(item_commitments.member(revealedItemCommitment), "Unissued item: this secret was not registered by the manufacturer for this batch");
+
+    // 3. Derive the nullifier and check for double-scanning
+    const nullInput = NullifierInput { batchHash: batchHash, secret: secret };
+    const derivedNullifier = persistentHash<NullifierInput>(nullInput);
     const revealedNullifier = disclose(derivedNullifier);
-    
-    // 3. Prevent duplicate scanning for this specific drug
     assert(!consumed_nullifiers.member(revealedNullifier), "This drug has already been scanned and verified. Potential Counterfeit Warning!");
-        
+
     // 4. Update public state
     consumed_nullifiers.insert(revealedNullifier);
-    
     const currentCount = registered_batches.lookup(revealedBatchHash);
     registered_batches.insert(revealedBatchHash, (currentCount + 1) as Uint<32>);
 }

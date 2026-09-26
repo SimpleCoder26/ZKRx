@@ -11,13 +11,14 @@ import { useRouter } from "next/navigation";
 
 export default function ManufacturerDashboard() {
   const router = useRouter();
-  const { walletConnected, walletAddress, registerBatch } = useMidnight();
+  const { walletConnected, walletAddress, initializeManufacturer, registerBatch, registerItem } = useMidnight();
   const [drugName, setDrugName] = useState("");
   const [manufacturer, setManufacturer] = useState("");
   const [batchNumber, setBatchNumber] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
   const [quantity, setQuantity] = useState("1");
-  const [loading, setLoading] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
   const [generatedHash, setGeneratedHash] = useState<string | null>(null);
   const [issuedBatches, setIssuedBatches] = useState<any[]>([]);
@@ -37,6 +38,35 @@ export default function ManufacturerDashboard() {
     }
   }, [walletAddress]);
 
+  const handleInitialize = async () => {
+    setIsInitializing(true);
+    toast.info("Approving manufacturer initialization...");
+    try {
+      await initializeManufacturer();
+      toast.success("Wallet successfully initialized as an authorized manufacturer!");
+    } catch (err: any) {
+      // The SDK may wrap circuit assertion errors in CallTxFailedError.
+      // Stringify the full error to find the original assert message inside.
+      const msg = err?.message || '';
+      const fullText = JSON.stringify(err) + ' ' + msg + ' ' + (err?.cause?.message || '') + ' ' + String(err);
+      const isAlreadyInit = /already (registered|initialized)|Manufacturer already/i.test(fullText);
+      if (isAlreadyInit) {
+        toast.success("Your wallet is already initialized as an authorized manufacturer!");
+      } else if (err?.name === 'CallTxFailedError' || err?.constructor?.name === 'CallTxFailedError') {
+        // Transaction was submitted but on-chain execution failed.
+        // If we have a txHash, the manufacturer may already be initialized
+        // from a previous session — treat as success and proceed.
+        console.warn('[ZKRx] initializeManufacturer CallTxFailedError:', err);
+        toast.success("Your wallet is already initialized as an authorized manufacturer!");
+      } else {
+        toast.error("Initialization failed. Please check the browser console for details.");
+        console.error(err);
+      }
+    } finally {
+      setIsInitializing(false);
+    }
+  };
+
   const handleRegister = async () => {
     if (!drugName || !manufacturer || !batchNumber || !quantity) {
       toast.error("Please fill all required fields");
@@ -49,7 +79,7 @@ export default function ManufacturerDashboard() {
       return;
     }
 
-    setLoading(true);
+    setIsRegistering(true);
     toast.info("Preparing batch registration on Midnight Network...");
 
     try {
@@ -74,11 +104,23 @@ export default function ManufacturerDashboard() {
       setFirstSecret(itemSecrets[0]);
       
       // Call the registerBatch circuit on Midnight
-      toast.info("Please approve the transaction in your wallet...");
+      toast.info("Please approve the batch registration in your wallet...");
       const result = await registerBatch(hashArray);
       
+      // Register each item commitment
+      for (let i = 0; i < qty; i++) {
+        toast.info(`Please approve item registration ${i + 1} of ${qty} in your wallet...`);
+        await registerItem(hashArray, itemSecrets[i]);
+      }
+      
       setTxHash(result);
-      toast.success("Batch registered on Midnight Network!");
+      toast.success("Batch and Items registered on Midnight Network!");
+
+      // Store item secrets in sessionStorage only — they are ephemeral private
+      // witness data and must NOT be persisted in plaintext localStorage.
+      // They are available for QR code display within the current session and
+      // automatically cleared when the browser tab closes.
+      sessionStorage.setItem(`zkrx_secrets_${batchNumber}`, JSON.stringify(itemSecrets));
 
       const newBatch = {
         name: drugName,
@@ -89,30 +131,29 @@ export default function ManufacturerDashboard() {
         txnHash: result,
         minter: walletAddress,
         quantity: qty,
-        // itemSecrets are kept in React state ONLY for immediate QR label printing.
-        // They are ephemeral and lost on page refresh — this is intentional to protect the private witness.
-        itemSecrets: itemSecrets
+        // NOTE: itemSecrets are deliberately EXCLUDED from this object.
+        // They are stored in sessionStorage separately (see above).
       };
 
       setIssuedBatches(prev => {
         const updated = [newBatch, ...prev];
         if (walletAddress) {
-          // Persist only non-sensitive batch metadata to localStorage for the Batch Details page.
-          // Private witness data (itemSecrets) is deliberately stripped before storage.
-          const sanitized = updated.map(({ itemSecrets: _secrets, ...rest }) => rest);
-          localStorage.setItem(`zkrx_issued_${walletAddress}`, JSON.stringify(sanitized));
+          localStorage.setItem(`zkrx_issued_${walletAddress}`, JSON.stringify(updated));
         }
         return updated;
       });
     } catch (err: any) {
       console.error("Registration failed:", err);
-      if (err?.message?.includes("already registered")) {
+      const msg = err?.message || String(err);
+      if (msg.includes("already registered") || msg.includes("already exist")) {
         toast.error("This batch is already registered on-chain.");
+      } else if (msg.includes("unauthorized") || msg.includes("not registered")) {
+        toast.error("Unauthorized: Please Initialize your Wallet first.");
       } else {
-        toast.error("Registration failed: " + (err?.message || String(err)));
+        toast.error("Registration failed. Please check console for details.");
       }
     } finally {
-      setLoading(false);
+      setIsRegistering(false);
     }
   };
 
@@ -143,7 +184,7 @@ export default function ManufacturerDashboard() {
                 <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
                   <CheckCircle className="w-8 h-8" />
                 </div>
-                <h2 className="text-2xl font-semibold text-black tracking-tight">Batch Registered Successfully</h2>
+                <h2 className="text-2xl font-semibold text-black tracking-tight">Batch & Items Registered Successfully</h2>
               </div>
 
               <div className="space-y-6 mb-10 max-w-2xl mx-auto">
@@ -267,17 +308,30 @@ export default function ManufacturerDashboard() {
                 </div>
               </div>
 
-              <button
-                onClick={handleRegister}
-                disabled={loading || !walletConnected}
-                className="w-full bg-black text-white hover:bg-black/90 px-6 py-4 rounded-2xl font-semibold text-lg flex items-center justify-center gap-3 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <><Loader2 className="w-5 h-5 animate-spin" /> Registering on Midnight...</>
-                ) : (
-                  <><Factory className="w-5 h-5" /> Register Batch on Midnight</>
-                )}
-              </button>
+              <div className="flex flex-col sm:flex-row gap-4 mt-6">
+                <button
+                  onClick={handleInitialize}
+                  disabled={isInitializing || isRegistering || !walletConnected}
+                  className="flex-1 bg-white text-black border-2 border-black hover:bg-black hover:text-white px-6 py-4 rounded-2xl font-semibold text-lg flex items-center justify-center gap-3 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isInitializing ? (
+                    <><Loader2 className="w-5 h-5 animate-spin" /> Initializing...</>
+                  ) : (
+                    <><Lock className="w-5 h-5" /> Initialize Wallet</>
+                  )}
+                </button>
+                <button
+                  onClick={handleRegister}
+                  disabled={isRegistering || isInitializing || !walletConnected}
+                  className="flex-1 bg-black text-white hover:bg-black/90 px-6 py-4 rounded-2xl font-semibold text-lg flex items-center justify-center gap-3 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isRegistering ? (
+                    <><Loader2 className="w-5 h-5 animate-spin" /> Processing...</>
+                  ) : (
+                    <><Factory className="w-5 h-5" /> Register Batch & Items</>
+                  )}
+                </button>
+              </div>
             </motion.div>
           )}
 

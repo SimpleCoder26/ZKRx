@@ -4,7 +4,38 @@
   "runtime-version": "0.16.0",
   "circuits": [
     {
+      "name": "initializeManufacturer",
+      "pure": false,
+      "proof": true,
+      "arguments": [
+      ],
+      "result-type": {
+        "type-name": "Tuple",
+        "types": [
+        ]
+      }
+    },
+    {
       "name": "registerBatch",
+      "pure": false,
+      "proof": true,
+      "arguments": [
+        {
+          "name": "batchHash",
+          "type": {
+            "type-name": "Bytes",
+            "length": 32
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Tuple",
+        "types": [
+        ]
+      }
+    },
+    {
+      "name": "registerItem",
       "pure": false,
       "proof": true,
       "arguments": [
@@ -44,6 +75,15 @@
   ],
   "witnesses": [
     {
+      "name": "manufacturerSecret",
+      "arguments": [
+      ],
+      "result type": {
+        "type-name": "Bytes",
+        "length": 32
+      }
+    },
+    {
       "name": "itemSecret",
       "arguments": [
       ],
@@ -57,8 +97,18 @@
   ],
   "ledger": [
     {
-      "name": "registered_batches",
+      "name": "authorized_manufacturers",
       "index": 0,
+      "exported": true,
+      "storage": "Set",
+      "type": {
+        "type-name": "Bytes",
+        "length": 32
+      }
+    },
+    {
+      "name": "registered_batches",
+      "index": 1,
       "exported": true,
       "storage": "Map",
       "key": {
@@ -71,8 +121,18 @@
       }
     },
     {
+      "name": "item_commitments",
+      "index": 2,
+      "exported": true,
+      "storage": "Set",
+      "type": {
+        "type-name": "Bytes",
+        "length": 32
+      }
+    },
+    {
       "name": "consumed_nullifiers",
-      "index": 1,
+      "index": 3,
       "exported": true,
       "storage": "Set",
       "type": {

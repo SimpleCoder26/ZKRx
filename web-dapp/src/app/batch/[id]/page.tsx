@@ -154,8 +154,28 @@ export default function BatchDetailsPage() {
 
               {/* Print Grid */}
               <div id="qr-print-grid" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 print:grid-cols-4 print:gap-4">
-                {(batch.itemSecrets || []).map((secret: string, idx: number) => {
-                  
+                {(() => {
+                // Read item secrets from sessionStorage (ephemeral, cleared on tab close)
+                // They are deliberately NOT stored in localStorage to protect private witness data.
+                let secrets: string[] = [];
+                try {
+                  const raw = sessionStorage.getItem(`zkrx_secrets_${batch.batch}`);
+                  if (raw) secrets = JSON.parse(raw);
+                } catch (e) { /* ignore parse errors */ }
+
+                if (secrets.length === 0) {
+                  return (
+                    <div className="text-center py-10 text-amber-600 bg-amber-50 rounded-2xl border border-amber-100 p-6">
+                      <p className="font-semibold">QR codes are no longer available</p>
+                      <p className="text-sm mt-2 text-amber-500">
+                        Item secrets are ephemeral and were cleared when the session ended.
+                        Re-register the batch to generate new QR codes.
+                      </p>
+                    </div>
+                  );
+                }
+
+                return secrets.map((secret: string, idx: number) => {
                   // Construct the ZK verification URL: /verify?payload=[BatchHash]-[ItemSecret]
                   // This is standard practice for physical asset verification, allowing mobile scanning.
                   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://zkrx.vercel.app';
@@ -184,7 +204,8 @@ export default function BatchDetailsPage() {
                       </div>
                     </div>
                   );
-                })}
+                });
+              })()}
               </div>
             </motion.div>
 
