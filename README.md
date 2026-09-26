@@ -106,65 +106,65 @@ Below is the definitive matrix mapping the Midnight Builder Challenge requiremen
 
 ## 🧾 CHECKPOINT DELIVERABLES: VISUAL PROOFS
 
-<details>
-<summary><b>1. Zero-Knowledge Circuit Compilation (Backend)</b></summary>
-<br>
-<i>Terminal output verifying the successful compilation of the Midnight Compact ZK circuits (`zkrx.compact`) into BZKIR and ZKIR formats, generating the necessary proving and verification keys for local execution.</i>
-<br><br>
-<b>Technical Validation:</b> Validates the successful compilation of the `zkrx.compact` smart contract. Confirms the generation of BZKIR bytecode, ZKIR formats, and necessary cryptographic keys (`.pk` and `.vk`) within the `managed/` directory, satisfying Level 1 toolchain requirements.
-<br><br>
+### 1. Zero-Knowledge Circuit Compilation (Backend)
+
+*Terminal output verifying the successful compilation of the Midnight Compact ZK circuits (`zkrx.compact`) into BZKIR and ZKIR formats, generating the necessary proving and verification keys for local execution.*
+
+**Technical Validation:** Validates the successful compilation of the `zkrx.compact` smart contract. Confirms the generation of BZKIR bytecode, ZKIR formats, and necessary cryptographic keys (`.pk` and `.vk`) within the `managed/` directory, satisfying Level 1 toolchain requirements.
+
 <img src="./web-dapp/img/compile-out-backend.png" width="800" alt="Backend Compile Output">
-</details>
 
-<details>
-<summary><b>2. DApp Production Build (Frontend)</b></summary>
 <br>
-<i>Next.js 16 production build output demonstrating the clean compilation of the frontend interface, static route generation, and WebAssembly integration logic via the Midnight.js SDK.</i>
-<br><br>
-<b>Technical Validation:</b> Demonstrates a zero-error Next.js 16 production build. Confirms the clean compilation of all App Router pages and successful integration of the `@midnight-ntwrk/midnight-js-protocol` WebAssembly dependencies into a production-ready frontend.
-<br><br>
+
+### 2. DApp Production Build (Frontend)
+
+*Next.js 16 production build output demonstrating the clean compilation of the frontend interface, static route generation, and WebAssembly integration logic via the Midnight.js SDK.*
+
+**Technical Validation:** Demonstrates a zero-error Next.js 16 production build. Confirms the clean compilation of all App Router pages and successful integration of the `@midnight-ntwrk/midnight-js-protocol` WebAssembly dependencies into a production-ready frontend.
+
 <img src="./web-dapp/img/compile-out-frontend.png" width="800" alt="Frontend Build Output">
-</details>
 
-<details>
-<summary><b>3. Verified Preprod Network Deployment</b></summary>
 <br>
-<i>Official Midnight Explorer verification proving the smart contract is fully deployed and active on the Preprod blockchain, confirming its state is tracked by network consensus.</i>
-<br><br>
-<b>Technical Validation:</b> Provides on-chain proof of the ZKRx smart contract deployment on the Midnight Preprod testnet. Displays the deployed contract address and confirmed transaction hash, fulfilling Level 1 and 2 deployment requirements.
-<br><br>
+
+### 3. Verified Preprod Network Deployment
+
+*Official Midnight Explorer verification proving the smart contract is fully deployed and active on the Preprod blockchain, confirming its state is tracked by network consensus.*
+
+**Technical Validation:** Provides on-chain proof of the ZKRx smart contract deployment on the Midnight Preprod testnet. Displays the deployed contract address and confirmed transaction hash, fulfilling Level 1 and 2 deployment requirements.
+
+**Contract Explorer Link:** [0xef1cc55f9f8b64b87026a1a7b2ea7af32409231dc80d47831fb0e2a20d5017de](https://preprod.midnightexplorer.com/contracts/0xef1cc55f9f8b64b87026a1a7b2ea7af32409231dc80d47831fb0e2a20d5017de)
+
 <img src="./web-dapp/img/deployed-contract-new.png" width="800" alt="Deployed Contract">
-</details>
 
-<details>
-<summary><b>4. Verified ZK-Proof Submission on Preprod</b></summary>
 <br>
-<i>Official Midnight Explorer verification proving the successful submission of a Zero-Knowledge Proof to the Preprod network, executing the `verifyDrug` state transition securely.</i>
-<br><br>
-<b>Technical Validation:</b> Captures a confirmed 'DApp' transaction on the Preprod Explorer. This validates a successful Zero-Knowledge state transition, proving the frontend successfully generated a local ZK-Proof via the 1A.M. wallet and the network accepted it.
-<br><br>
+
+### 4. Verified ZK-Proof Submission on Preprod
+
+*Official Midnight Explorer verification proving the successful submission of a Zero-Knowledge Proof to the Preprod network, executing the `verifyDrug` state transition securely.*
+
+**Technical Validation:** Captures a confirmed 'DApp' transaction on the Preprod Explorer. This validates a successful Zero-Knowledge state transition, proving the frontend successfully generated a local ZK-Proof via the 1A.M. wallet and the network accepted it.
+
 <img src="./web-dapp/img/successfull-txn.png" width="800" alt="Successful Transaction">
-</details>
 
-<details>
-<summary><b>5. Passing Test Suite (Level 3 & 4)</b></summary>
 <br>
-<i>Terminal output proving all successful passing tests. Crucially, the tests rigorously validate circuit logic by ensuring `verifyDrug` mathematically rejects attempts on unregistered batches, protects against unauthorized wallets, avoids unissued secrets, and correctly increments sequential ledger state updates.</i>
-<br><br>
-<b>Technical Validation:</b> Displays 12 passing tests executed natively via `@midnight-ntwrk/compact-runtime`. Validates core cryptographic invariants including manufacturer authorization, nullifier collision prevention, and ledger state increments, exceeding the Level 3 minimum requirement.
-<br><br>
+
+### 5. Passing Test Suite (Level 3 & 4)
+
+*Terminal output proving all successful passing tests. Crucially, the tests rigorously validate circuit logic by ensuring `verifyDrug` mathematically rejects attempts on unregistered batches, protects against unauthorized wallets, avoids unissued secrets, and correctly increments sequential ledger state updates.*
+
+**Technical Validation:** Displays 12 passing tests executed natively via `@midnight-ntwrk/compact-runtime`. Validates core cryptographic invariants including manufacturer authorization, nullifier collision prevention, and ledger state increments, exceeding the Level 3 minimum requirement.
+
 <img src="./web-dapp/img/3+passed_new.png" width="800" alt="Passing Tests">
-</details>
 
-<details>
-<summary><b>6. Unified CI/CD Pipeline (Level 3)</b></summary>
 <br>
-<i>GitHub Actions dashboard verifying the automated pipeline. As required for Level 3 compliance, this includes a dedicated `Compile Compact Contract` step executed successfully before running tests.</i>
-<br><br>
-<b>Technical Validation:</b> Verifies the automated CI/CD pipeline via GitHub Actions. Confirms that code pushes trigger a clean containerized environment that successfully compiles the ZK circuits and executes the test suite, fulfilling Level 3 pipeline requirements.
-<br><br>
+
+### 6. Unified CI/CD Pipeline (Level 3)
+
+*GitHub Actions dashboard verifying the automated pipeline. As required for Level 3 compliance, this includes a dedicated `Compile Compact Contract` step executed successfully before running tests.*
+
+**Technical Validation:** Verifies the automated CI/CD pipeline via GitHub Actions. Confirms that code pushes trigger a clean containerized environment that successfully compiles the ZK circuits and executes the test suite, fulfilling Level 3 pipeline requirements.
+
 <img src="./web-dapp/img/ci-cd-pipeline.png" width="800" alt="CI/CD Pipeline">
-</details>
 
 ---
 
