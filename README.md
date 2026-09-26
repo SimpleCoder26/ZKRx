@@ -138,17 +138,27 @@ Below is the definitive matrix mapping the Midnight Builder Challenge requiremen
 
 <br>
 
-### 4. Verified ZK-Proof Submission on Preprod
+### 4. Verified ZK-Proof Submission on Preprod (Drug Verification)
 
 *Official Midnight Explorer verification proving the successful submission of a Zero-Knowledge Proof to the Preprod network, executing the `verifyDrug` state transition securely.*
 
 **Technical Validation:** Captures a confirmed 'DApp' transaction on the Preprod Explorer. This validates a successful Zero-Knowledge state transition, proving the frontend successfully generated a local ZK-Proof via the 1A.M. wallet and the network accepted it.
 
-<img src="./web-dapp/img/successfull-txn.png" width="800" alt="Successful Transaction">
+<img src="./web-dapp/img/sucessfull-txn-new.png" width="800" alt="Successful Transaction">
 
 <br>
 
-### 5. Passing Test Suite (Level 3 & 4)
+### 5. Verified ZK-Proof Submission on Preprod (Batch Registration)
+
+*Official Midnight Explorer verification proving the successful registration of a new drug batch to the Preprod network via the `registerBatch` circuit.*
+
+**Technical Validation:** Captures a confirmed transaction proving the authorized manufacturer successfully authenticated and registered a cryptographic batch hash on-chain. This visually confirms the proper functioning of the manufacturer dashboard integration.
+
+<img src="./web-dapp/img/sucessfull-batch-registration.png" width="800" alt="Successful Batch Registration">
+
+<br>
+
+### 6. Passing Test Suite (Level 3 & 4)
 
 *Terminal output proving all successful passing tests. Crucially, the tests rigorously validate circuit logic by ensuring `verifyDrug` mathematically rejects attempts on unregistered batches, protects against unauthorized wallets, avoids unissued secrets, and correctly increments sequential ledger state updates.*
 
@@ -158,7 +168,7 @@ Below is the definitive matrix mapping the Midnight Builder Challenge requiremen
 
 <br>
 
-### 6. Unified CI/CD Pipeline (Level 3)
+### 7. Unified CI/CD Pipeline (Level 3)
 
 *GitHub Actions dashboard verifying the automated pipeline. As required for Level 3 compliance, this includes a dedicated `Compile Compact Contract` step executed successfully before running tests.*
 
