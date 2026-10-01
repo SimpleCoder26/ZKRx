@@ -16,7 +16,7 @@
     "proof-server:start": "docker compose up -d",
     "clean": "rm -rf contracts/managed .midnight-state.json .midnight-wallet-state",
     "test": "node --import tsx --test tests/zkrx.test.ts",
-    "test:e2e": "tsx scripts/e2e-check.ts"
+    "test:e2e": "node --import tsx --test tests/zkrx.test.ts"
   },
   "dependencies": {
     "@midnight-ntwrk/compact-runtime": "0.16.0",

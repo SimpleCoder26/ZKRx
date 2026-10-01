@@ -85,6 +85,7 @@ const compiledContract = CompiledContract.make('zkrx', ZKRx.Contract as any).pip
   // @ts-expect-error - dynamic import loses exact witness types
   CompiledContract.withWitnesses({
     itemSecret: (context: any) => [context.privateState, new Uint8Array(32)],
+    manufacturerSecret: (context: any) => [context.privateState, new Uint8Array(32)],
   }),
   CompiledContract.withCompiledFileAssets(zkConfigPath),
 );

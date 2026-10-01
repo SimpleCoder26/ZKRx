@@ -26,7 +26,9 @@ export function toHex(bytes: Uint8Array): string {
 
 export function fromHex(hex: string): Uint8Array {
   const normalized = hex.startsWith('0x') ? hex.slice(2) : hex;
-  if (normalized.length % 2 !== 0) throw new Error('Invalid hex string from wallet.');
+  if (normalized.length % 2 !== 0 || !/^[0-9a-fA-F]*$/.test(normalized)) {
+    throw new Error('Invalid hex string from wallet.');
+  }
   const bytes = new Uint8Array(normalized.length / 2);
   for (let i = 0; i < normalized.length; i += 2) {
     bytes[i / 2] = parseInt(normalized.slice(i, i + 2), 16);
@@ -61,65 +63,15 @@ export function createPatchedPublicDataProvider(base: any, queryUrl: string) {
       );
       return action ? ContractState.deserialize(fromHex(action.state)) : null;
     },
-    async watchForTxData(txHash: string) {
-      console.log('[ZKRx] Watching for tx confirmation:', txHash);
+    async watchForTxData(txId: string) {
+      console.log('[ZKRx] Watching for tx finalization by identifier:', txId);
 
-      // Strategy: Try the SDK's native WebSocket-based watcher first.
-      // It returns the complete TxData structure that callTx needs to
-      // update private state and return properly.  Only fall back to
-      // HTTP polling if the WebSocket times out or errors.
-      try {
-        const nativeResult = await Promise.race([
-          base.watchForTxData(txHash),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Native watchForTxData timed out after 120s')), 120_000)
-          )
-        ]);
-        console.log('[ZKRx] Native tx confirmation received for:', txHash);
-        return nativeResult;
-      } catch (nativeErr: any) {
-        console.warn('[ZKRx] Native watchForTxData failed, using HTTP polling fallback:', nativeErr?.message);
-      }
-
-      // Fallback: poll the indexer HTTP endpoint for contract state changes
-      const { getContractAddress } = await import('@/config');
-      const contractAddress = getContractAddress();
-
-      let initialStateHex: string | null = null;
-      try {
-        const snap = await queryLatest(
-          `query LATEST($address: HexEncoded!) { contractAction(address: $address) { state } }`,
-          contractAddress
-        );
-        initialStateHex = snap?.state ?? null;
-      } catch (e) {
-        console.warn('[ZKRx] Failed to fetch initial state for polling', e);
-      }
-
-      let attempts = 0;
-      const maxAttempts = 60;
-      const intervalMs = 10_000;
-      while (attempts < maxAttempts) {
-        await new Promise(r => setTimeout(r, intervalMs));
-        attempts++;
-        try {
-          const current = await queryLatest(
-            `query LATEST($address: HexEncoded!) { contractAction(address: $address) { state } }`,
-            contractAddress
-          );
-          if (current && current.state !== initialStateHex) {
-            console.log('[ZKRx] Contract state changed — tx confirmed after', attempts, 'polls');
-            // Return the full state so the SDK can reconstruct the tx data.
-            // We include the serialized contract state which the SDK uses
-            // to apply state transitions and update private state.
-            const contractState = ContractState.deserialize(fromHex(current.state));
-            return { public: { txHash, contractState }, private: {} };
-          }
-        } catch (e) {
-          console.warn('[ZKRx] Polling attempt', attempts, 'error:', e);
-        }
-      }
-      throw new Error('Transaction confirmation timeout after ' + maxAttempts + ' attempts. The network may be congested — please try again.');
+      // The Midnight SDK requires the complete FinalizedTxData object so it
+      // can apply the resulting private-state update. A contract-state poll
+      // cannot safely replace it: it may observe another transaction and it
+      // does not contain the finalized transaction/private-state fields.
+      // Keep the SDK watcher as the single source of truth.
+      return base.watchForTxData(txId);
     }
   };
 }
@@ -216,12 +168,10 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
     const savedBalance = localStorage.getItem('zkrx_wallet_balance');
 
     if (savedWallet && savedAddress) {
-      // Passive hydration: do not forcefully popup the wallet on every refresh.
-      // We just restore the UI state. Real connection happens just-in-time if needed.
+      // Restore display-only data. Do not claim to be connected until the
+      // injected wallet and all Midnight providers have been rebuilt.
       setWalletAddress(savedAddress);
       setWalletBalance(savedBalance || '0.00');
-      setWalletConnected(true);
-      setNetworkId('preprod');
     }
   }, []);
 
@@ -339,18 +289,22 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
           }
         } as any;
 
-        let lastSubmittedTxHash = '';
         const midnightProvider = {
           submitTx: async (tx: any) => {
             const txBytes = tx.serialize();
             const txHex = toHex(txBytes);
 
-            await activeApi.submitTransaction(txHex);
+            // watchForTxData expects a ledger transaction identifier, not the
+            // transaction hash. Using transactionHash() here caused confirmed
+            // wallet transactions to remain pending forever in the UI.
+            const identifiers = tx.identifiers();
+            if (!identifiers?.length) {
+              throw new Error('Submitted transaction has no ledger identifier.');
+            }
 
-            const hashHex = tx.transactionHash();
-            console.log('[ZKRx] Computed TX Hash:', hashHex);
-            lastSubmittedTxHash = hashHex;
-            return hashHex;
+            await activeApi.submitTransaction(txHex);
+            console.log('[ZKRx] Submitted transaction identifier:', identifiers[0]);
+            return identifiers[0];
           }
         } as any;
 
@@ -449,14 +403,22 @@ export function MidnightProvider({ children }: { children: React.ReactNode }) {
           console.log('[ZKRx] Persistent contract instance created.');
         } catch (contractErr: any) {
           console.error('[ZKRx] Failed to find deployed contract:', contractErr);
-          // Non-fatal: the user can still connect; we just won't have a contract instance yet.
-          // Transaction functions will check for this and throw a clear error.
+          throw new Error(`Unable to load the deployed ZKRx contract: ${contractErr?.message || String(contractErr)}`);
         }
 
         console.log('[ZKRx] Contract Providers configured successfully!');
       } catch (initErr: any) {
         console.error('[ZKRx] Provider initialization failed:', initErr);
         alert(`Failed to initialize Midnight Providers.\n\nReason: ${initErr?.message || String(initErr)}\n\nPlease ensure your wallet is unlocked and try again.`);
+        // A wallet connection without a contract instance is not usable. Do
+        // not let the UI persist a false-positive connected state.
+        setConnectedApi(null);
+        connectedApiRef.current = null;
+        setMidnightProviders(null);
+        midnightProvidersRef.current = null;
+        compiledContractRef.current = null;
+        contractInstanceRef.current = null;
+        throw initErr;
       }
 
       try {

@@ -49,9 +49,18 @@ function VerifyDrugContent() {
 
     try {
       let hashToVerify = batchHashInput.trim();
+      // QR codes contain a full /verify?payload=... URL, while manual input
+      // may contain the raw payload. Accept both forms.
+      try {
+        const url = new URL(hashToVerify);
+        const payload = url.searchParams.get('payload');
+        if (payload) hashToVerify = payload;
+      } catch {
+        // Raw payload; validate it below.
+      }
 
       const parts = hashToVerify.split('-');
-      if (parts.length !== 2 || parts[0].length !== 64 || parts[1].length !== 64) {
+      if (parts.length !== 2 || !/^[0-9a-fA-F]{64}$/.test(parts[0]) || !/^[0-9a-fA-F]{64}$/.test(parts[1])) {
         throw new Error("Invalid QR code format. Expected a valid [BatchHash]-[ItemSecret] payload.");
       }
       
@@ -59,9 +68,7 @@ function VerifyDrugContent() {
       const itemSecretHex = parts[1].replace(/^0x/, '');
       
       const batchBytes = new Uint8Array(32);
-      for (let i = 0; i < Math.min(32, batchHex.length / 2); i++) {
-        batchBytes[i] = parseInt(batchHex.slice(i * 2, i * 2 + 2), 16);
-      }
+      for (let i = 0; i < 32; i++) batchBytes[i] = parseInt(batchHex.slice(i * 2, i * 2 + 2), 16);
 
       toast.info("Please approve the transaction in your wallet...");
       const hash = await verifyDrug(batchBytes, itemSecretHex);

@@ -52,12 +52,6 @@ export default function ManufacturerDashboard() {
       const isAlreadyInit = /already (registered|initialized)|Manufacturer already/i.test(fullText);
       if (isAlreadyInit) {
         toast.success("Your wallet is already initialized as an authorized manufacturer!");
-      } else if (err?.name === 'CallTxFailedError' || err?.constructor?.name === 'CallTxFailedError') {
-        // Transaction was submitted but on-chain execution failed.
-        // If we have a txHash, the manufacturer may already be initialized
-        // from a previous session — treat as success and proceed.
-        console.warn('[ZKRx] initializeManufacturer CallTxFailedError:', err);
-        toast.success("Your wallet is already initialized as an authorized manufacturer!");
       } else {
         toast.error("Initialization failed. Please check the browser console for details.");
         console.error(err);
